@@ -1,0 +1,86 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.caseystella.analytics</groupId>
+  <artifactId>streaming_analytics</artifactId>
+  <version>0.1</version>
+  <packaging>pom</packaging>
+  <url>https://github.com/cestella/streaming_outliers</url>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <global_kafka_version>0.8.2.2</global_kafka_version>
+    <global_hadoop_version>2.7.1</global_hadoop_version>
+    <global_hbase_version>1.1.1</global_hbase_version>
+    <java.version>1.7</java.version>
+    <scala.version>2.10.4</scala.version>
+    <scala.binary.version>2.10</scala.binary.version>
+    <global_junit_version>4.4</global_junit_version>
+    <global_tsdb_version>2.2.0RC1</global_tsdb_version>
+    <global_storm_version>0.10.0</global_storm_version>
+    <global_flux_version>0.10.0</global_flux_version>
+    <global_algebird_version>0.12.0</global_algebird_version>
+    <PermGen>64m</PermGen>
+    <MaxPermGen>512m</MaxPermGen>
+  </properties>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <repositories>
+    <repository>
+      <id>multiline-release-repo</id>
+      <url>https://raw.github.com/benelog/multiline/master/maven-repository</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <modules>
+    <module>core</module>
+    <module>storm</module>
+  </modules>
+  <dependencies>
+    <dependency>
+      <groupId>org.adrianwalker</groupId>
+      <artifactId>multiline-string</artifactId>
+      <version>0.1.1</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>sun.jdk</groupId>
+          <artifactId>tools</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${global_junit_version}</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+          <encoding>UTF-8</encoding>
+          <maxmem>1024m</maxmem>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <reporting>                                                                              
+    <plugins>                                                                            
+    </plugins>                                                                           
+  </reporting>             
+</project>
