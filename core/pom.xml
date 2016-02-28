@@ -11,7 +11,7 @@
   <artifactId>core</artifactId>
   <packaging>jar</packaging>
 
-  <name>core</name>
+  <source>core</source>
   <url>http://maven.apache.org</url>
   <dependencies>
     <dependency>
@@ -20,9 +20,19 @@
       <version>${global_tsdb_version}</version>
     </dependency>
     <dependency>
+      <groupId>org.apache.hbase</groupId>
+      <artifactId>hbase-common</artifactId>
+      <version>${global_hbase_version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.twitter</groupId>
       <artifactId>algebird-core_2.10</artifactId>
       <version>${global_algebird_version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.opencsv</groupId>
+      <artifactId>opencsv</artifactId>
+      <version>${global_opencsv_version}</version>
     </dependency>
   </dependencies>
   <build>

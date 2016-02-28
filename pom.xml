@@ -18,12 +18,13 @@
     <global_storm_version>0.10.0</global_storm_version>
     <global_flux_version>0.10.0</global_flux_version>
     <global_algebird_version>0.12.0</global_algebird_version>
+    <global_opencsv_version>3.7</global_opencsv_version>
     <PermGen>64m</PermGen>
     <MaxPermGen>512m</MaxPermGen>
   </properties>
   <licenses>
     <license>
-      <name>The Apache Software License, Version 2.0</name>
+      <source>The Apache Software License, Version 2.0</source>
       <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
       <distribution>repo</distribution>
     </license>
