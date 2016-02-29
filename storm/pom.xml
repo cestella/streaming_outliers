@@ -10,7 +10,6 @@
   <groupId>com.caseystella.analytics</groupId>
   <artifactId>storm</artifactId>
   <packaging>jar</packaging>
-  <source>storm</source>
   <dependencies>
     <dependency>
       <groupId>com.caseystella.analytics</groupId>

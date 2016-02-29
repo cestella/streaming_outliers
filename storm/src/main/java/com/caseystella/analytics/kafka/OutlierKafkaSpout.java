@@ -1,0 +1,48 @@
+package com.caseystella.analytics.kafka;
+
+import com.caseystella.analytics.extractors.DataPointExtractorConfig;
+import com.caseystella.analytics.streaming.outlier.OutlierConfig;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
+import storm.kafka.Callback;
+import storm.kafka.CallbackKafkaSpout;
+import storm.kafka.KeyValueSchemeAsMultiScheme;
+import storm.kafka.SpoutConfig;
+
+import java.util.ArrayList;
+
+public class OutlierKafkaSpout extends CallbackKafkaSpout {
+    private OutlierConfig outlierConfig;
+    public OutlierKafkaSpout( SpoutConfig spoutConfig
+                            , OutlierConfig outlierConfig
+                            , DataPointExtractorConfig extractorConfig
+                            , String zkConnectString
+                            )
+    {
+        super(spoutConfig, OutlierCallback.class);
+        this.outlierConfig = outlierConfig;
+        spoutConfig.scheme = new KeyValueSchemeAsMultiScheme(new TimestampedExtractorScheme(extractorConfig));
+        if(zkConnectString != null && zkConnectString.length() > 0) {
+            boolean isFirst = true;
+            for (String hostPort : Splitter.on(',').split(zkConnectString)) {
+                Iterable<String> hp = Splitter.on(':').split(hostPort);
+                String host = Iterables.getFirst(hp, null);
+                if (host != null) {
+                    if (isFirst) {
+                        spoutConfig.zkServers = new ArrayList<>();
+                        spoutConfig.zkPort = Integer.parseInt(Iterables.getLast(hp));
+                        isFirst = false;
+                    }
+                    spoutConfig.zkServers.add(host);
+                }
+            }
+        }
+    }
+
+
+
+    @Override
+    protected Callback createCallback(Class<? extends Callback> callbackClass) {
+        return new OutlierCallback(outlierConfig);
+    }
+}

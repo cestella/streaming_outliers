@@ -9,6 +9,10 @@ object DistributionUtils {
     val semigroup = new QTreeSemigroup[Double](6);
     iterableAsScalaIterable(values).map{QTree(_)}.reduce(merge(_, _, semigroup))
   }
+  def createTree(value:java.lang.Double) : QTree[Double] = {
+    QTree(value)
+  }
+
   def merge(left:QTree[Double], right:QTree[Double], semigroup :QTreeSemigroup[Double] = new QTreeSemigroup(6)) : QTree[Double] = {
     semigroup.plus(left, right)
   }
