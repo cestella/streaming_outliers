@@ -1,6 +1,7 @@
 package com.caseystella.analytics.distribution;
 
 import com.caseystella.analytics.DataPoint;
+import com.caseystella.analytics.distribution.scaling.ScalingFunctions;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.junit.Assert;
 import org.junit.Test;
@@ -22,14 +23,15 @@ public class DistributionTest {
             points.add(dp);
             stats.addValue(val);
             if(distribution == null) {
-                distribution = new Distribution(dp);
+                distribution = new Distribution(dp, ScalingFunctions.NONE, new GlobalStatistics());
             }
             else {
-                distribution.addDataPoint(dp);
+                distribution.addDataPoint(dp, ScalingFunctions.NONE);
             }
         }
         double realMedian = stats.getPercentile(50);
         double approxMedian = distribution.getMedian();
+        System.out.println("mean and std dev: " + stats.getMean() + ", " + Math.sqrt(stats.getVariance()));
         System.out.println("Real : " + realMedian + ", approx: " + approxMedian);
         Assert.assertTrue(Math.abs(realMedian - approxMedian) < 5);
     }

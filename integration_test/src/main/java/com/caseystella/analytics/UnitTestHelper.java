@@ -52,15 +52,15 @@ public class UnitTestHelper {
         return null;
     }
 
-    public static <T> void assertSetEqual(String type, Set<T> expectedPcapIds, Set<T> found) {
+    public static <T> void assertSetEqual(String type, Set<T> expectedVals, Set<T> found) {
         boolean mismatch = false;
         for(T f : found) {
-            if(!expectedPcapIds.contains(f)) {
+            if(!expectedVals.contains(f)) {
                 mismatch = true;
                 System.out.println("Found " + type + " that I did not expect: " + f);
             }
         }
-        for(T expectedId : expectedPcapIds) {
+        for(T expectedId : expectedVals) {
             if(!found.contains(expectedId)) {
                 mismatch = true;
                 System.out.println("Expected " + type + " that I did not index: " + expectedId);

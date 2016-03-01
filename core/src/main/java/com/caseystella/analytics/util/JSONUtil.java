@@ -1,11 +1,13 @@
 package com.caseystella.analytics.util;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.Map;
 
 public enum JSONUtil {
     INSTANCE;
@@ -44,4 +46,15 @@ public enum JSONUtil {
     public <T> T load(String s, Class<T> clazz) throws IOException {
         return load( s, Charset.defaultCharset(), clazz);
     }
+    public <T> T load(InputStream is, TypeReference<T> reference) throws IOException {
+        T ret = MAPPER.get().readValue(is, reference);
+        return ret;
+    }
+    public <T> T load(String s, Charset c, TypeReference<T> reference) throws IOException {
+        return load( new ByteArrayInputStream(s.getBytes(c)), reference);
+    }
+    public <T> T load(String s, TypeReference<T> reference) throws IOException {
+        return load( s, Charset.defaultCharset(), reference);
+    }
+
 }

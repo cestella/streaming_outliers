@@ -1,19 +1,29 @@
 package com.caseystella.analytics.distribution;
 
 import com.caseystella.analytics.DataPoint;
+import com.caseystella.analytics.distribution.config.RotationConfig;
+import com.caseystella.analytics.distribution.config.Type;
+import com.caseystella.analytics.distribution.scaling.ScalingFunction;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.twitter.algebird.QTree;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import scala.Tuple2;
 
 import java.util.LinkedList;
 
 public class Distribution implements Measurable {
+
+
     public static class Context {
         private Distribution currentDistribution;
+        private Distribution previousDistribution;
         private LinkedList<Distribution> chunks = new LinkedList<>();
 
+        public Distribution getPreviousDistribution() {
+            return previousDistribution;
+        }
         public Distribution getCurrentDistribution() {
             return currentDistribution;
         }
@@ -24,20 +34,26 @@ public class Distribution implements Measurable {
             return currentDistribution == null?0L:currentDistribution.getAmount();
         }
 
-        public void addDataPoint(DataPoint dp, RotationConfig rotationPolicy, RotationConfig chunkingPolicy) {
+        public void addDataPoint( DataPoint dp
+                                , RotationConfig rotationPolicy
+                                , RotationConfig chunkingPolicy
+                                , ScalingFunction scalingFunction
+                                , GlobalStatistics stats
+                                )
+        {
             if(currentDistribution == null) {
-                currentDistribution = new Distribution(dp);
+                currentDistribution = new Distribution(dp, scalingFunction, stats);
             }
             else {
-                currentDistribution.addDataPoint(dp);
+                currentDistribution.addDataPoint(dp, scalingFunction);
             }
             //do I need to create a new chunk?
             boolean needNewChunk = chunks.size() == 0 || outOfPolicy(getCurrentChunk(), chunkingPolicy);
             if(needNewChunk) {
-                addChunk(new Distribution(dp));
+                addChunk(new Distribution(dp, scalingFunction, stats));
             }
             else {
-                getCurrentChunk().addDataPoint(dp);
+                getCurrentChunk().addDataPoint(dp, scalingFunction);
             }
             if(needNewChunk) {
                 //do I need to rotate now?
@@ -55,6 +71,7 @@ public class Distribution implements Measurable {
 
         protected void rotate() {
             chunks.removeLast();
+            previousDistribution = currentDistribution;
             currentDistribution = Distribution.merge(chunks);
         }
 
@@ -111,28 +128,47 @@ public class Distribution implements Measurable {
 
     }
     QTree<Object> distribution;
-    long begin;
-    long end;
-    long amount;
+    long begin = 0L;
+    long end = 0L;
+    long amount = 0L;
+    double sum;
+    GlobalStatistics globalStatistics;
 
-    public Distribution(QTree<Object> distribution, long begin, long end, long amount) {
+    public Distribution(Distribution dist) {
+        this(dist.distribution, dist.getBegin(), dist.getEnd(), dist.getAmount(), dist.getSum(), dist.getGlobalStatistics());
+    }
+    public Distribution(QTree<Object> distribution, long begin, long end, long amount, double sum, GlobalStatistics stats) {
         this.distribution = distribution;
         this.begin = begin;
         this.end = end;
         this.amount = amount;
+        this.sum = sum;
+        this.globalStatistics = stats;
+
     }
-    public Distribution(DataPoint dp) {
+    public Distribution(DataPoint dp, ScalingFunction scalingFunction, GlobalStatistics stats) {
         this.begin = dp.getTimestamp();
         this.end = dp.getTimestamp();
+        this.globalStatistics = stats;
         this.amount = 1L;
-        this.distribution = DistributionUtils.createTree(ImmutableList.of(dp.getValue()));
+        this.sum = dp.getValue();
+        this.distribution = DistributionUtils.createTree(ImmutableList.of(scalingFunction.scale(dp.getValue(), globalStatistics)));
     }
 
-    public void addDataPoint(DataPoint dp ) {
+    public double getSum() {
+        return sum;
+    }
+
+    public GlobalStatistics getGlobalStatistics() {
+        return globalStatistics;
+    }
+    public void addDataPoint(DataPoint dp, ScalingFunction scalingFunction ) {
         this.end = Math.max(end, dp.getTimestamp());
         this.begin = Math.min(begin, dp.getTimestamp());
+        this.sum += dp.getValue();
         this.amount++;
-        this.distribution = DistributionUtils.merge(this.distribution, DistributionUtils.createTree(ImmutableList.of(dp.getValue())));
+
+        this.distribution = DistributionUtils.merge(this.distribution, DistributionUtils.createTree(ImmutableList.of(scalingFunction.scale(dp.getValue(), globalStatistics))));
     }
 
     @Override
@@ -150,23 +186,58 @@ public class Distribution implements Measurable {
         return amount;
     }
 
+    public static double getMadScore(Iterable<Double> vals, Double val) {
+        DescriptiveStatistics stats = new DescriptiveStatistics();
+        DescriptiveStatistics medianStats = new DescriptiveStatistics();
+        for(Double v : vals) {
+            stats.addValue(v);
+        }
+        double median = stats.getPercentile(50);
+        for(Double v : vals) {
+            medianStats.addValue(Math.abs(v - median));
+        }
+        double mad = medianStats.getPercentile(50);
+        return Math.abs(0.6745*(val - median)/mad);
+    }
+
+    public static double kullbackLeibler(Distribution p0, Distribution p1) {
+        if(p0 == null || p1 == null ) {
+            return 0;
+        }
+        double kl = 0;
+        for(double i = 0.01;i < 1.0;i += 0.01) {
+            double p_i = p0.getPercentile(i);
+            kl += p_i*Math.log(p_i/p1.getPercentile(i));
+        }
+        kl /= Math.log(2);
+        return kl;
+    }
+
     public static Distribution merge(Iterable<Distribution> distributions) {
         QTree<Object> distribution = null;
         long begin = Long.MAX_VALUE;
         long end = -1l;
         long amount = 0l;
+        double sum = 0;
+        GlobalStatistics globalStats = null;
         for(Distribution d : distributions) {
             if(distribution == null) {
                 distribution = d.distribution;
+                globalStats = d.getGlobalStatistics();
             }
             else {
                 distribution = DistributionUtils.merge(distribution, d.distribution);
             }
             begin = Math.min(begin, d.begin);
             end = Math.max(end, d.end);
+            sum += d.sum;
             amount += d.amount;
         }
-        return new Distribution(distribution, begin, end, amount);
+        return new Distribution(distribution, begin, end, amount, sum, globalStats);
+    }
+
+    public double getMean() {
+        return sum / amount;
     }
 
     public ValueRange getPercentileRange(double percentile) {
@@ -188,6 +259,9 @@ public class Distribution implements Measurable {
         return approximator.apply(getPercentileRange(percentile));
     }
 
+    public double getPercentile(double percentile) {
+       return getPercentileRange(percentile, RangeApproximator.MIDPOINT);
+    }
     public double getMedian(Function<Range<Double>, Double> approximator) {
         return getPercentileRange(0.5, approximator);
     }

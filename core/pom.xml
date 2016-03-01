@@ -13,6 +13,13 @@
   <url>http://maven.apache.org</url>
   <dependencies>
     <dependency>
+      <groupId>com.caseystella.analytics</groupId>
+      <artifactId>integration_test</artifactId>
+      <version>${parent.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
       <groupId>net.opentsdb</groupId>
       <artifactId>opentsdb</artifactId>
       <version>${global_tsdb_version}</version>

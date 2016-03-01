@@ -1,4 +1,4 @@
-package com.caseystella.analytics.distribution;
+package com.caseystella.analytics.distribution.config;
 
 /**
  * Created by cstella on 2/28/16.

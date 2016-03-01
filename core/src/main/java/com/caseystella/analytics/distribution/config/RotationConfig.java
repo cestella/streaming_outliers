@@ -1,4 +1,7 @@
-package com.caseystella.analytics.distribution;
+package com.caseystella.analytics.distribution.config;
+
+import com.caseystella.analytics.distribution.config.Type;
+import com.caseystella.analytics.distribution.config.Unit;
 
 public class RotationConfig {
     Type type;

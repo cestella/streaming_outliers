@@ -1,5 +1,6 @@
-package com.caseystella.analytics.distribution;
+package com.caseystella.analytics.distribution.config;
 
+import com.caseystella.analytics.distribution.TimeRange;
 import com.google.common.base.Function;
 import org.joda.time.*;
 

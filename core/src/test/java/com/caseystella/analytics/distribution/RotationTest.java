@@ -58,40 +58,41 @@ public class RotationTest {
                 numRotations.set(numRotations.get() + 1);
             }
         };
+        GlobalStatistics globalStats= new GlobalStatistics();
         Random r = new Random(0);
         List<DataPoint> points = new ArrayList<>();
         DescriptiveStatistics stats = new DescriptiveStatistics();
         LongWritable ts = new LongWritable(0L);
         Assert.assertEquals(context.getAmount(), 0);
-        context.addDataPoint(nextDataPoint(r, ts, 1, points), config.getRotationPolicy(), config.getChunkingPolicy());
+        context.addDataPoint(nextDataPoint(r, ts, 1, points), config.getRotationPolicy(), config.getChunkingPolicy(), config.getScalingFunction(), globalStats);
         Assert.assertEquals(context.getAmount(), 1);
         Assert.assertEquals(context.getChunks().size(), 1);
         Assert.assertEquals(numChunksAdded.get(), 1);
         Assert.assertEquals(numRotations.get(), 0);
         for(int i = 1; i < 10;++i) {
-            context.addDataPoint(nextDataPoint(r, ts, 1, points), config.getRotationPolicy(), config.getChunkingPolicy());
+            context.addDataPoint(nextDataPoint(r, ts, 1, points), config.getRotationPolicy(), config.getChunkingPolicy(), config.getScalingFunction(), globalStats);
             Assert.assertEquals(context.getChunks().size(), 1);
         }
         //at the 11th point, we should create a new chunk
-        context.addDataPoint(nextDataPoint(r, ts, 1, points), config.getRotationPolicy(), config.getChunkingPolicy());
+        context.addDataPoint(nextDataPoint(r, ts, 1, points), config.getRotationPolicy(), config.getChunkingPolicy(), config.getScalingFunction(), globalStats);
         Assert.assertEquals(context.getChunks().size(), 2);
         Assert.assertEquals(numChunksAdded.get(), 2);
         Assert.assertEquals(context.getAmount(), 11);
         Assert.assertEquals(numRotations.get(), 0);
         for(int i = 12;i <= 110;++i) {
-            context.addDataPoint(nextDataPoint(r, ts, 1, points), config.getRotationPolicy(), config.getChunkingPolicy());
+            context.addDataPoint(nextDataPoint(r, ts, 1, points), config.getRotationPolicy(), config.getChunkingPolicy(), config.getScalingFunction(), globalStats);
         }
         Assert.assertEquals(11, numChunksAdded.get());
         Assert.assertEquals(0, numRotations.get());
         //at the 111th point, we should create a rotation
-        context.addDataPoint(nextDataPoint(r, ts, 1, points), config.getRotationPolicy(), config.getChunkingPolicy());
+        context.addDataPoint(nextDataPoint(r, ts, 1, points), config.getRotationPolicy(), config.getChunkingPolicy(), config.getScalingFunction(), globalStats);
         Assert.assertEquals(12, numChunksAdded.get());
         Assert.assertEquals(11, context.getChunks().size());
         Assert.assertEquals(1, numRotations.get());
         //rotates just past the rotation cutoff (ensuring that we keep at least the last 100 entries in there)
         Assert.assertEquals(context.getAmount(), 101);
         for(int i = 111;i <= 150;++i) {
-            context.addDataPoint(nextDataPoint(r, ts, 1, points), config.getRotationPolicy(), config.getChunkingPolicy());
+            context.addDataPoint(nextDataPoint(r, ts, 1, points), config.getRotationPolicy(), config.getChunkingPolicy(), config.getScalingFunction(), globalStats);
         }
         //no matter how far we go in the stream, we always stay at 11 chunks and a total number of values in the distribution of <= 110 (i.e. between the cutoff and cutoff + a chunk)
         Assert.assertEquals(11, context.getChunks().size());

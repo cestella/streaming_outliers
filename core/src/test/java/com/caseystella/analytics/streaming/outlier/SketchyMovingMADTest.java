@@ -1,12 +1,14 @@
 package com.caseystella.analytics.streaming.outlier;
 
 import com.caseystella.analytics.DataPoint;
-import com.caseystella.analytics.streaming.outlier.mad.SketchyMovingMAD;
+import com.caseystella.analytics.streaming.outlier.algo.mad.SketchyMovingMAD;
+import com.caseystella.analytics.util.JSONUtil;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -25,11 +27,17 @@ public class SketchyMovingMADTest {
                        ,"amount" : 10
                        ,"unit" : "POINTS"
                          }
-     ,"minAmountToPredict" : 100
-     ,"zScoreCutoffs" : {
-                        "NORMAL" : 3.5
-                       ,"MODERATE_OUTLIER" : 5
-                        }
+     ,"globalStatistics" : {
+                         "min" : -10000
+                         }
+     ,"outlierAlgorithm" : "SKETCHY_MOVING_MAD"
+     ,"config" : {
+                 "minAmountToPredict" : 100
+                ,"zscoreCutoffs" : {
+                                    "NORMAL" : 3.5
+                                   ,"MODERATE_OUTLIER" : 5
+                                   }
+                 }
      }
      */
     @Multiline
@@ -41,16 +49,16 @@ public class SketchyMovingMADTest {
     }
 
     @Test
-    public void testSketchyMovingMAD() {
+    public void testSketchyMovingMAD() throws IOException {
         Random r = new Random(0);
         List<DataPoint> points = new ArrayList<>();
         DescriptiveStatistics stats = new DescriptiveStatistics();
         DescriptiveStatistics medianStats = new DescriptiveStatistics();
-        SketchyMovingMAD madAlgo = new SketchyMovingMAD();
-        madAlgo.configure(madConfig);
+        OutlierConfig config = JSONUtil.INSTANCE.load(madConfig, OutlierConfig.class);
+        SketchyMovingMAD madAlgo = ((SketchyMovingMAD)config.getOutlierAlgorithm()).withConfig(config);
         int i = 0;
         for(i = 0; i < 10000;++i) {
-            double val = r.nextDouble() * 1000;
+            double val = r.nextDouble() * 1000 - 10000;
             stats.addValue(val);
             DataPoint dp = (new DataPoint(i, val, null, "foo"));
             madAlgo.analyze(dp);
@@ -65,14 +73,14 @@ public class SketchyMovingMADTest {
             double val = getValAtModifiedZScore(3.6, mad, median);
             System.out.println("MODERATE => " + val);
             DataPoint dp = (new DataPoint(i++, val, null, "foo"));
-            Severity s = madAlgo.analyze(dp);
+            Severity s = madAlgo.analyze(dp).getSeverity();
             Assert.assertEquals(Severity.MODERATE_OUTLIER, s);
         }
         {
             double val = getValAtModifiedZScore(6, mad, median);
             System.out.println("SEVERE => " + val);
             DataPoint dp = (new DataPoint(i++, val, null, "foo"));
-            Severity s = madAlgo.analyze(dp);
+            Severity s = madAlgo.analyze(dp).getSeverity();
             Assert.assertEquals(Severity.SEVERE_OUTLIER, s);
         }
 

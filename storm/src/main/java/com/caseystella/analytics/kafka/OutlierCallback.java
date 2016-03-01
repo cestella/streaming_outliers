@@ -1,14 +1,12 @@
 package com.caseystella.analytics.kafka;
 
 import com.caseystella.analytics.DataPoint;
-import com.caseystella.analytics.extractors.DataPointExtractorConfig;
+import com.caseystella.analytics.Outlier;
 import com.caseystella.analytics.streaming.outlier.OutlierAlgorithm;
+import com.caseystella.analytics.streaming.outlier.OutlierAlgorithms;
 import com.caseystella.analytics.streaming.outlier.OutlierConfig;
 import com.caseystella.analytics.streaming.outlier.Severity;
-import com.caseystella.analytics.streaming.outlier.mad.SketchyMovingMAD;
-import com.caseystella.analytics.streaming.outlier.mad.SketchyMovingMADConfig;
-import com.google.common.base.Functions;
-import com.google.common.collect.Iterables;
+import com.caseystella.analytics.streaming.outlier.persist.OutlierPersister;
 import storm.kafka.Callback;
 import storm.kafka.EmitContext;
 
@@ -16,9 +14,10 @@ import java.io.Closeable;
 import java.util.List;
 
 public class OutlierCallback implements Callback {
-    SketchyMovingMADConfig outlierConfig;
+    OutlierConfig outlierConfig;
     OutlierAlgorithm outlierAlgorithm;
-    public OutlierCallback(SketchyMovingMADConfig outlierConfig) {
+    OutlierPersister outlierPersister;
+    public OutlierCallback(OutlierConfig outlierConfig) {
         this.outlierConfig = outlierConfig;
     }
 
@@ -26,15 +25,17 @@ public class OutlierCallback implements Callback {
     public List<Object> apply(List<Object> tuple, EmitContext context) {
         for(Object o : tuple) {
             DataPoint dp = (DataPoint)o;
-            Severity severity = outlierAlgorithm.analyze(dp);
-            //now what?
+            Outlier outlier = outlierAlgorithm.analyze(dp);
         }
         return tuple;
     }
 
     @Override
     public void initialize(EmitContext context) {
-        outlierAlgorithm = new SketchyMovingMAD(outlierConfig);
+        outlierAlgorithm = outlierConfig.getOutlierAlgorithm();
+        outlierAlgorithm.configure(outlierConfig);
+        outlierPersister = outlierConfig.getOutlierPersister();
+        outlierPersister.configure(outlierConfig, context);
     }
 
     /**
