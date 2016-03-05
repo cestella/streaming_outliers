@@ -75,14 +75,14 @@ public class SketchyMovingMADTest {
             System.out.println("MODERATE => " + val);
             DataPoint dp = (new DataPoint(i++, val, null, "foo"));
             Severity s = madAlgo.analyze(dp).getSeverity();
-            Assert.assertEquals(Severity.MODERATE_OUTLIER, s);
+            Assert.assertTrue(s == Severity.MODERATE_OUTLIER );
         }
         {
             double val = getValAtModifiedZScore(6, mad, median);
             System.out.println("SEVERE => " + val);
             DataPoint dp = (new DataPoint(i++, val, null, "foo"));
             Severity s = madAlgo.analyze(dp).getSeverity();
-            Assert.assertEquals(Severity.SEVERE_OUTLIER, s);
+            Assert.assertTrue(s == Severity.SEVERE_OUTLIER );
         }
 
         Assert.assertTrue(madAlgo.getMedianDistributions().get("foo").getAmount() <= 110);

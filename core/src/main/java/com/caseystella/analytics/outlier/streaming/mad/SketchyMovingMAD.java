@@ -55,7 +55,7 @@ public class SketchyMovingMAD implements OutlierAlgorithm{
         Distribution.Context valueDistribution = getContext(dp.getSource(), valueDistributions);
         Distribution.Context medianDistribution = getContext(dp.getSource(), medianDistributions);
         Distribution.Context zScoreDistribution = getContext(dp.getSource(), zScoreDistributions);
-        boolean haveEnoughValues = valueDistribution.getAmount() > minAmountToPredict && dp.getValue() > EPSILON;
+        boolean haveEnoughValues = valueDistribution.getAmount() > minAmountToPredict && Math.abs(scalePoint(dp)) > EPSILON;
         boolean haveEnoughMedians =medianDistribution.getAmount() > minAmountToPredict;
         boolean makePrediction = haveEnoughValues
                               && haveEnoughMedians
@@ -63,9 +63,7 @@ public class SketchyMovingMAD implements OutlierAlgorithm{
         Severity ret = Severity.NOT_ENOUGH_DATA;
         Double absDiff = null;
         Double median = null;
-        Double mean = null;
         if(haveEnoughValues) {
-            mean = scaleValue(valueDistribution.getCurrentDistribution().getMean());
             median = valueDistribution.getCurrentDistribution().getMedian();
         }
         valueDistribution.addDataPoint(dp, config.getRotationPolicy(), config.getChunkingPolicy(), config.getScalingFunction(), config.getGlobalStatistics());
