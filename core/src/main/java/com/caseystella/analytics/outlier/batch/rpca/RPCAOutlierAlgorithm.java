@@ -1,10 +1,14 @@
 package com.caseystella.analytics.outlier.batch.rpca;
 
 import com.caseystella.analytics.DataPoint;
+import com.caseystella.analytics.distribution.GlobalStatistics;
+import com.caseystella.analytics.distribution.scaling.ScalingFunctions;
 import com.caseystella.analytics.outlier.Outlier;
 import com.caseystella.analytics.outlier.Severity;
 import com.caseystella.analytics.outlier.batch.OutlierAlgorithm;
 import com.caseystella.analytics.outlier.batch.OutlierConfig;
+import com.caseystella.analytics.util.ConfigUtil;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import java.util.List;
 
@@ -12,17 +16,42 @@ public class RPCAOutlierAlgorithm implements OutlierAlgorithm{
     private static final double EPSILON = 1e-12;
     private final double LPENALTY_DEFAULT = 1;
     private final double SPENALTY_DEFAULT = 1.4;
+    private final String LPENALTY_CONFIG = "lpenalty";
+    private final String SPENALTY_CONFIG = "spenalty";
+    private final String FORCE_DIFF_CONFIG = "forceDiff";
+    private final String MIN_RECORDS_CONFIG = "minRecords";
+
     private Double  lpenalty;
     private Double  spenalty;
     private Boolean isForceDiff = false;
     private int minRecords = 0;
+    private ScalingFunctions scaling = ScalingFunctions.NONE;
 
     public RPCAOutlierAlgorithm() {
 
     }
 
+    public RPCAOutlierAlgorithm withLPenalty(double lPenalty) {
+        this.lpenalty = lPenalty;
+        return this;
+    }
+    public RPCAOutlierAlgorithm withSPenalty(double sPenalty) {
+        this.spenalty = sPenalty;
+        return this;
+    }
 
-
+    public RPCAOutlierAlgorithm withForceDiff(boolean forceDiff) {
+        this.isForceDiff = forceDiff;
+        return this;
+    }
+    public RPCAOutlierAlgorithm withMinRecords(int minRecords) {
+        this.minRecords = minRecords;
+        return this;
+    }
+    public RPCAOutlierAlgorithm withScalingFunction(ScalingFunctions scaling) {
+        this.scaling = scaling;
+        return this;
+    }
     // Helper Function
     public double[][] VectorToMatrix(double[] x, int rows, int cols) {
         double[][] input2DArray = new double[rows][cols];
@@ -34,21 +63,46 @@ public class RPCAOutlierAlgorithm implements OutlierAlgorithm{
         return input2DArray;
     }
 
+
+
+
     public Severity isOutlier(List<DataPoint> dataPoints, DataPoint value) {
         double[] inputData = new double[dataPoints.size() + 1];
-        int i = 0;
         int numNonZero = 0;
-        for(DataPoint dp : dataPoints) {
-            inputData[i++] = dp.getValue();
-            numNonZero += dp.getValue() > EPSILON?1:0;
+        if(scaling != ScalingFunctions.NONE) {
+            int i = 0;
+            final DescriptiveStatistics stats = new DescriptiveStatistics();
+            for (DataPoint dp : dataPoints) {
+                inputData[i++] = dp.getValue();
+
+                stats.addValue(dp.getValue());
+                numNonZero += dp.getValue() > EPSILON ? 1 : 0;
+            }
+            inputData[i] = value.getValue();
+            GlobalStatistics globalStats = new GlobalStatistics() {{
+                setMax(stats.getMax());
+                setMin(stats.getMin());
+                setMax(stats.getMean());
+                setStddev(stats.getStandardDeviation());
+            }};
+            for(i = 0;i < inputData.length;++i) {
+                inputData[i] = scaling.scale(inputData[i], globalStats);
+            }
         }
-        inputData[i] = value.getValue();
+        else {
+            int i = 0;
+            for (DataPoint dp : dataPoints) {
+                inputData[i++] = dp.getValue();
+                numNonZero += dp.getValue() > EPSILON ? 1 : 0;
+            }
+            inputData[i] = value.getValue();
+        }
         int nCols = 1;
         int nRows = inputData.length;
         if(numNonZero > minRecords) {
             AugmentedDickeyFuller dickeyFullerTest = new AugmentedDickeyFuller(inputData);
             double[] inputArrayTransformed = inputData;
-            if (this.isForceDiff == null && dickeyFullerTest.isNeedsDiff()) {
+            if (!this.isForceDiff && dickeyFullerTest.isNeedsDiff()) {
                 // Auto Diff
                 inputArrayTransformed = dickeyFullerTest.getZeroPaddedDiff();
             } else if (this.isForceDiff) {
@@ -107,8 +161,33 @@ public class RPCAOutlierAlgorithm implements OutlierAlgorithm{
         return outlierCandidate;
     }
 
-    @Override
-    public void configure(OutlierConfig configStr) {
 
+
+    @Override
+    public void configure(OutlierConfig config) {
+        {
+            Object lPenaltyObj = config.getConfig().get(LPENALTY_CONFIG);
+            if (lPenaltyObj != null) {
+                withLPenalty(ConfigUtil.INSTANCE.coerceDouble(LPENALTY_CONFIG, lPenaltyObj));
+            }
+        }
+        {
+            Object sPenaltyObj = config.getConfig().get(SPENALTY_CONFIG);
+            if (sPenaltyObj != null) {
+                withSPenalty(ConfigUtil.INSTANCE.coerceDouble(SPENALTY_CONFIG, sPenaltyObj));
+            }
+        }
+        {
+            Object forceDiffObj= config.getConfig().get(FORCE_DIFF_CONFIG);
+            if (forceDiffObj != null) {
+                withForceDiff(ConfigUtil.INSTANCE.coerceBoolean(FORCE_DIFF_CONFIG, forceDiffObj));
+            }
+        }
+        {
+            Object minRecordsObj = config.getConfig().get(MIN_RECORDS_CONFIG);
+            if (minRecordsObj!= null) {
+                withMinRecords(ConfigUtil.INSTANCE.coerceInteger(MIN_RECORDS_CONFIG, minRecordsObj));
+            }
+        }
     }
 }

@@ -8,6 +8,7 @@ import com.caseystella.analytics.distribution.SimpleTimeRange;
 import com.caseystella.analytics.outlier.streaming.OutlierAlgorithm;
 import com.caseystella.analytics.outlier.streaming.OutlierConfig;
 import com.caseystella.analytics.outlier.Severity;
+import com.caseystella.analytics.util.ConfigUtil;
 
 import java.util.*;
 
@@ -165,38 +166,20 @@ public class SketchyMovingMAD implements OutlierAlgorithm{
     public static final String MIN_ZSCORE_PERCENTILE = "minZscorePercentile";
 
 
-    public static Long coerceLong(String field, Object o) {
-        if(o instanceof String) {
-            return Long.parseLong(o.toString());
-        }
-        else if(o instanceof Number) {
-            return ((Number)o).longValue();
-        }
-        throw new RuntimeException(field + ": Unable to coerce " + o + " to a number");
-    }
 
-    public static Double coerceDouble(String field, Object o) {
-        if(o instanceof String) {
-            return Double.parseDouble(o.toString());
-        }
-        else if(o instanceof Number) {
-            return ((Number)o).doubleValue();
-        }
-        throw new RuntimeException(field + ": Unable to coerce " + o + " to a number");
-    }
 
     @Override
     public void configure(OutlierConfig config) {
         this.config = config;
         if(config.getConfig().containsKey(MIN_AMOUNT_TO_PREDICT)) {
             Object o = config.getConfig().get(MIN_AMOUNT_TO_PREDICT);
-            minAmountToPredict = coerceLong(MIN_AMOUNT_TO_PREDICT, o);
+            minAmountToPredict = ConfigUtil.INSTANCE.coerceLong(MIN_AMOUNT_TO_PREDICT, o);
         }
 
         if(config.getConfig().containsKey(ZSCORE_CUTOFFS_CONF)) {
             Map<Object, Object> map = (Map<Object, Object>) config.getConfig().get(ZSCORE_CUTOFFS_CONF);
             for(Map.Entry<Object, Object> kv : map.entrySet()) {
-                zScoreCutoffs.put(Severity.valueOf(kv.getKey().toString()), coerceDouble(MIN_AMOUNT_TO_PREDICT, kv.getValue()));
+                zScoreCutoffs.put(Severity.valueOf(kv.getKey().toString()), ConfigUtil.INSTANCE.coerceDouble(MIN_AMOUNT_TO_PREDICT, kv.getValue()));
             }
         }
         boolean cutoffsAreThere = zScoreCutoffs.get(Severity.MODERATE_OUTLIER) != null
@@ -211,7 +194,7 @@ public class SketchyMovingMAD implements OutlierAlgorithm{
         }
         if(config.getConfig().containsKey(MIN_ZSCORE_PERCENTILE)) {
             Object o = config.getConfig().get(MIN_ZSCORE_PERCENTILE);
-            minPercentileZScoreToAllow = coerceDouble(MIN_ZSCORE_PERCENTILE, o)/100;
+            minPercentileZScoreToAllow = ConfigUtil.INSTANCE.coerceDouble(MIN_ZSCORE_PERCENTILE, o)/100;
 
         }
     }

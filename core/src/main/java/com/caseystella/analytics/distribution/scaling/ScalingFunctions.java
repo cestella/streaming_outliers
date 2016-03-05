@@ -14,7 +14,8 @@ public enum ScalingFunctions implements ScalingFunction {
 
     ,SQUEEZE_TO_UNIT( new DefaultScalingFunctions.SqueezeToUnit())
 
-    ,FIXED_MEAN_UNIT_VARIANCE(new DefaultScalingFunctions.FixedMeanZeroVariance())
+    ,FIXED_MEAN_UNIT_VARIANCE(new DefaultScalingFunctions.FixedMeanUnitVariance())
+    ,ZERO_MEAN_UNIT_VARIANCE(new DefaultScalingFunctions.ZeroMeanUnitVariance())
     ;
     private ScalingFunction _func;
     ScalingFunctions(ScalingFunction func) {
