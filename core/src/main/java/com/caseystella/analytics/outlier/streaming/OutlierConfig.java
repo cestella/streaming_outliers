@@ -1,9 +1,10 @@
-package com.caseystella.analytics.streaming.outlier;
+package com.caseystella.analytics.outlier.streaming;
 
 import com.caseystella.analytics.distribution.GlobalStatistics;
 import com.caseystella.analytics.distribution.config.RotationConfig;
 import com.caseystella.analytics.distribution.scaling.ScalingFunctions;
-import com.caseystella.analytics.streaming.outlier.persist.OutlierPersister;
+import com.caseystella.analytics.timeseries.OutlierPersister;
+import com.caseystella.analytics.timeseries.OutlierPersisters;
 
 import java.util.HashMap;
 import java.util.Map;

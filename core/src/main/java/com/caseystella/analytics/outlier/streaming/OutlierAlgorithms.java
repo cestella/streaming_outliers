@@ -1,6 +1,6 @@
-package com.caseystella.analytics.streaming.outlier;
+package com.caseystella.analytics.outlier.streaming;
 
-import com.caseystella.analytics.streaming.outlier.algo.mad.SketchyMovingMAD;
+import com.caseystella.analytics.outlier.streaming.mad.SketchyMovingMAD;
 
 public enum OutlierAlgorithms {
     SKETCHY_MOVING_MAD(SketchyMovingMAD.class)

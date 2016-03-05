@@ -1,6 +1,4 @@
-package com.caseystella.analytics.streaming.outlier;
-
-import com.caseystella.analytics.streaming.outlier.persist.OutlierPersister;
+package com.caseystella.analytics.timeseries;
 
 public enum OutlierPersisters {
     ;

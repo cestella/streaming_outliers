@@ -1,7 +1,7 @@
-package com.caseystella.analytics.streaming.outlier.persist;
+package com.caseystella.analytics.timeseries;
 
-import com.caseystella.analytics.Outlier;
-import com.caseystella.analytics.streaming.outlier.OutlierConfig;
+import com.caseystella.analytics.outlier.Outlier;
+import com.caseystella.analytics.outlier.streaming.OutlierConfig;
 
 import java.util.Map;
 

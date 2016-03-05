@@ -1,7 +1,8 @@
-package com.caseystella.analytics.streaming.outlier;
+package com.caseystella.analytics.outlier.streaming.mad;
 
 import com.caseystella.analytics.DataPoint;
-import com.caseystella.analytics.streaming.outlier.algo.mad.SketchyMovingMAD;
+import com.caseystella.analytics.outlier.streaming.OutlierConfig;
+import com.caseystella.analytics.outlier.Severity;
 import com.caseystella.analytics.util.JSONUtil;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;

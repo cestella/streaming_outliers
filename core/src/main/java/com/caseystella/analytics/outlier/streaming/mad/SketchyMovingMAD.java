@@ -1,13 +1,13 @@
-package com.caseystella.analytics.streaming.outlier.algo.mad;
+package com.caseystella.analytics.outlier.streaming.mad;
 
 import com.caseystella.analytics.DataPoint;
-import com.caseystella.analytics.Outlier;
+import com.caseystella.analytics.outlier.Outlier;
 import com.caseystella.analytics.distribution.Distribution;
 import com.caseystella.analytics.distribution.scaling.ScalingFunctions;
 import com.caseystella.analytics.distribution.SimpleTimeRange;
-import com.caseystella.analytics.streaming.outlier.OutlierAlgorithm;
-import com.caseystella.analytics.streaming.outlier.OutlierConfig;
-import com.caseystella.analytics.streaming.outlier.Severity;
+import com.caseystella.analytics.outlier.streaming.OutlierAlgorithm;
+import com.caseystella.analytics.outlier.streaming.OutlierConfig;
+import com.caseystella.analytics.outlier.Severity;
 
 import java.util.*;
 
@@ -54,7 +54,7 @@ public class SketchyMovingMAD implements OutlierAlgorithm{
         Distribution.Context valueDistribution = getContext(dp.getSource(), valueDistributions);
         Distribution.Context medianDistribution = getContext(dp.getSource(), medianDistributions);
         Distribution.Context zScoreDistribution = getContext(dp.getSource(), zScoreDistributions);
-        boolean haveEnoughValues = valueDistribution.getAmount() > minAmountToPredict;
+        boolean haveEnoughValues = valueDistribution.getAmount() > minAmountToPredict && dp.getValue() > EPSILON;
         boolean haveEnoughMedians =medianDistribution.getAmount() > minAmountToPredict;
         boolean makePrediction = haveEnoughValues
                               && haveEnoughMedians
@@ -94,6 +94,15 @@ public class SketchyMovingMAD implements OutlierAlgorithm{
                             , null //we don't know the global statistics here.
                     );
                 }
+                else {
+                    if(Math.abs(dp.getValue()) < EPSILON) {
+                        try {
+                            Thread.sleep(0);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
             }
         }
         if(haveEnoughValues) {
@@ -117,10 +126,10 @@ public class SketchyMovingMAD implements OutlierAlgorithm{
         && (lastOutlier.contains(Severity.SEVERE_OUTLIER))
           )
         {
-            s.setSeverity(Severity.NORMAL);
+            //s.setSeverity(Severity.NORMAL);
         }
         lastOutlier.addFirst(s.getSeverity());
-        if(lastOutlier.size() > 5) {
+        if(lastOutlier.size() > 3) {
             lastOutlier.removeLast();
         }
     }

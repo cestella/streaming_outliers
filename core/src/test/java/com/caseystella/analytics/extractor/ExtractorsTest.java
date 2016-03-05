@@ -1,4 +1,4 @@
-package com.caseystella.analytics.extractors;
+package com.caseystella.analytics.extractor;
 
 import com.caseystella.analytics.DataPoint;
 import com.google.common.collect.Iterables;

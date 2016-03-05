@@ -2,8 +2,8 @@ package com.caseystella.analytics.kafka;
 
 import backtype.storm.tuple.Fields;
 import com.caseystella.analytics.DataPoint;
-import com.caseystella.analytics.extractors.DataPointExtractor;
-import com.caseystella.analytics.extractors.DataPointExtractorConfig;
+import com.caseystella.analytics.extractor.DataPointExtractor;
+import com.caseystella.analytics.extractor.DataPointExtractorConfig;
 import com.google.common.collect.Iterables;
 import storm.kafka.KeyValueScheme;
 

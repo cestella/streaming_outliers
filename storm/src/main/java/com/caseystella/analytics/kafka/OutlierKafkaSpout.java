@@ -1,7 +1,7 @@
 package com.caseystella.analytics.kafka;
 
-import com.caseystella.analytics.extractors.DataPointExtractorConfig;
-import com.caseystella.analytics.streaming.outlier.OutlierConfig;
+import com.caseystella.analytics.extractor.DataPointExtractorConfig;
+import com.caseystella.analytics.outlier.streaming.OutlierConfig;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import storm.kafka.Callback;

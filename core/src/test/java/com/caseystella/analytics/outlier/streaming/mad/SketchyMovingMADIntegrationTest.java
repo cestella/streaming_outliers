@@ -1,13 +1,12 @@
-package com.caseystella.analytics.streaming.outlier;
+package com.caseystella.analytics.outlier.streaming.mad;
 
 import com.caseystella.analytics.DataPoint;
-import com.caseystella.analytics.Extractor;
-import com.caseystella.analytics.Outlier;
+import com.caseystella.analytics.outlier.Outlier;
 import com.caseystella.analytics.UnitTestHelper;
+import com.caseystella.analytics.outlier.Severity;
 import com.caseystella.analytics.util.JSONUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Function;
-import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.adrianwalker.multilinestring.Multiline;
@@ -17,10 +16,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -81,6 +77,34 @@ public class SketchyMovingMADIntegrationTest {
                  }
      }
      */
+    //@Multiline
+    //public static String outlierConfig;
+ /**
+    {
+     "rotationPolicy" : {
+                        "type" : "BY_AMOUNT"
+                       ,"amount" : 100
+                       ,"unit" : "POINTS"
+                        }
+     ,"chunkingPolicy" : {
+                        "type" : "BY_AMOUNT"
+                       ,"amount" : 10
+                       ,"unit" : "POINTS"
+                         }
+     ,"outlierAlgorithm" : "SKETCHY_MOVING_MAD"
+     ,"globalStatistics": {
+                          "min" : -200
+                          }
+     ,"config" : {
+                 "minAmountToPredict" : 100
+                ,"zscoreCutoffs" : {
+                                    "NORMAL" : 0.000000000000001
+                                   ,"MODERATE_OUTLIER" : 1.5
+                                   }
+                ,"minZscorePercentile" : 95
+                 }
+     }
+     */
     @Multiline
     public static String outlierConfig;
 
@@ -112,6 +136,7 @@ public class SketchyMovingMADIntegrationTest {
         long total = 0;
         for(Map.Entry<String, List<String>> kv : benchmarks.entrySet()) {
             File dataFile = new File(new File(benchmarkRoot), kv.getKey());
+            File plotFile = new File(new File(benchmarkRoot), kv.getKey() + ".dat");
             Assert.assertTrue(dataFile.exists());
             Set<Long> expectedOutliers = Sets.newHashSet(Iterables.transform(kv.getValue(), STR_TO_TS));
             OutlierRunner runner = new OutlierRunner(outlierConfig, extractorConfigStr);
@@ -119,6 +144,7 @@ public class SketchyMovingMADIntegrationTest {
             final LongWritable lastTimestamp = new LongWritable(Long.MIN_VALUE);
             final DescriptiveStatistics timeDiffStats = new DescriptiveStatistics();
             final Map<Long, Outlier> outlierMap = new HashMap<>();
+            final PrintWriter pw = new PrintWriter(plotFile);
             List<Outlier> outliers = runner.run(dataFile, 1
                     , EnumSet.of(Severity.SEVERE_OUTLIER)
                     , new Function<Map.Entry<DataPoint, Outlier>, Void>() {
@@ -127,6 +153,7 @@ public class SketchyMovingMADIntegrationTest {
                         public Void apply(@Nullable Map.Entry<DataPoint, Outlier> kv) {
                             DataPoint dataPoint = kv.getKey();
                             Outlier outlier = kv.getValue();
+                            pw.println(dataPoint.getTimestamp() + " " + outlier.getDataPoint().getValue() + " " + ((outlier.getSeverity() == Severity.SEVERE_OUTLIER)?"outlier":"normal"));
                             outlierMap.put(dataPoint.getTimestamp(), outlier);
                             numObservations.set(numObservations.get() + 1);
                             if(lastTimestamp.get() != Long.MIN_VALUE) {
@@ -137,6 +164,7 @@ public class SketchyMovingMADIntegrationTest {
                         }
                     }
             );
+            pw.close();
             total += numObservations.get();
             Set<Long> calculatedOutliers = Sets.newHashSet(Iterables.transform(outliers, OutlierRunner.OUTLIER_TO_TS));
             double stdDevDiff = Math.sqrt(timeDiffStats.getVariance());
@@ -149,6 +177,8 @@ public class SketchyMovingMADIntegrationTest {
                                                                                                           , outlierMap
                                                                                                           , globalExpectedScores
                                                                                                           );
+
+            ConfusionMatrix.printConfusionMatrix(confusionMatrix);
             overallConfusionMatrix = ConfusionMatrix.merge(overallConfusionMatrix, confusionMatrix);
         }
         System.out.println("Really ran " + total);

@@ -1,18 +1,16 @@
-package com.caseystella.analytics.streaming.outlier;
+package com.caseystella.analytics.outlier.streaming.mad;
 
 import com.caseystella.analytics.DataPoint;
 import com.caseystella.analytics.Extractor;
-import com.caseystella.analytics.Outlier;
-import com.caseystella.analytics.extractors.DataPointExtractor;
-import com.caseystella.analytics.extractors.DataPointExtractorConfig;
-import com.caseystella.analytics.streaming.outlier.algo.mad.SketchyMovingMAD;
-import com.caseystella.analytics.streaming.outlier.persist.OutlierPersister;
+import com.caseystella.analytics.outlier.Outlier;
+import com.caseystella.analytics.extractor.DataPointExtractor;
+import com.caseystella.analytics.extractor.DataPointExtractorConfig;
+import com.caseystella.analytics.outlier.streaming.OutlierConfig;
+import com.caseystella.analytics.outlier.Severity;
+import com.caseystella.analytics.timeseries.OutlierPersister;
 import com.caseystella.analytics.util.JSONUtil;
 import com.google.common.base.Function;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.hadoop.io.LongWritable;
 
 import javax.annotation.Nullable;
 import java.io.*;

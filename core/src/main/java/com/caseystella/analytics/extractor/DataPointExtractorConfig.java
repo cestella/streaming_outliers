@@ -1,4 +1,4 @@
-package com.caseystella.analytics.extractors;
+package com.caseystella.analytics.extractor;
 
 import com.caseystella.analytics.converters.*;
 import com.caseystella.analytics.converters.primitive.PrimitiveConverter;

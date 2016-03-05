@@ -1,4 +1,4 @@
-package com.caseystella.analytics.streaming.outlier;
+package com.caseystella.analytics.outlier;
 
 public enum Severity {
     NORMAL,

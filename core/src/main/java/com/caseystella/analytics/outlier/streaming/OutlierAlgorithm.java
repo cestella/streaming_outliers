@@ -1,7 +1,7 @@
-package com.caseystella.analytics.streaming.outlier;
+package com.caseystella.analytics.outlier.streaming;
 
 import com.caseystella.analytics.DataPoint;
-import com.caseystella.analytics.Outlier;
+import com.caseystella.analytics.outlier.Outlier;
 
 /**
  * Created by cstella on 2/28/16.

@@ -1,7 +1,7 @@
 package com.caseystella.analytics.distribution;
 
 import com.caseystella.analytics.DataPoint;
-import com.caseystella.analytics.streaming.outlier.OutlierConfig;
+import com.caseystella.analytics.outlier.streaming.OutlierConfig;
 import com.caseystella.analytics.util.JSONUtil;
 import org.adrianwalker.multilinestring.Multiline;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;

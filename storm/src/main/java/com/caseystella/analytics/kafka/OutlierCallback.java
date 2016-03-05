@@ -1,12 +1,10 @@
 package com.caseystella.analytics.kafka;
 
 import com.caseystella.analytics.DataPoint;
-import com.caseystella.analytics.Outlier;
-import com.caseystella.analytics.streaming.outlier.OutlierAlgorithm;
-import com.caseystella.analytics.streaming.outlier.OutlierAlgorithms;
-import com.caseystella.analytics.streaming.outlier.OutlierConfig;
-import com.caseystella.analytics.streaming.outlier.Severity;
-import com.caseystella.analytics.streaming.outlier.persist.OutlierPersister;
+import com.caseystella.analytics.outlier.Outlier;
+import com.caseystella.analytics.outlier.streaming.OutlierAlgorithm;
+import com.caseystella.analytics.outlier.streaming.OutlierConfig;
+import com.caseystella.analytics.timeseries.OutlierPersister;
 import storm.kafka.Callback;
 import storm.kafka.EmitContext;
 

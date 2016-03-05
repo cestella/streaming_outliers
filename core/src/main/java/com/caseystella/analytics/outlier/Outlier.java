@@ -1,7 +1,7 @@
-package com.caseystella.analytics;
+package com.caseystella.analytics.outlier;
 
+import com.caseystella.analytics.DataPoint;
 import com.caseystella.analytics.distribution.TimeRange;
-import com.caseystella.analytics.streaming.outlier.Severity;
 
 public class Outlier {
     DataPoint dataPoint;

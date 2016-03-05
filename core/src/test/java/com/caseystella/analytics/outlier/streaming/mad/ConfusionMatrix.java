@@ -1,12 +1,11 @@
-package com.caseystella.analytics.streaming.outlier;
+package com.caseystella.analytics.outlier.streaming.mad;
 
-import com.caseystella.analytics.Outlier;
+import com.caseystella.analytics.outlier.Outlier;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.hadoop.io.LongWritable;
 import org.junit.Assert;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
