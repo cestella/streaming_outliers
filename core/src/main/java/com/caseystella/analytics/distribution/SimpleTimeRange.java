@@ -4,8 +4,12 @@ public class SimpleTimeRange implements TimeRange{
     private long begin;
     private long end;
     public SimpleTimeRange(TimeRange tr) {
-        this.begin = tr.getBegin();
-        this.end = tr.getEnd();
+        this(tr.getBegin(), tr.getEnd());
+    }
+
+    public SimpleTimeRange(long begin, long end) {
+        this.begin = begin;
+        this.end = end;
     }
 
     @Override

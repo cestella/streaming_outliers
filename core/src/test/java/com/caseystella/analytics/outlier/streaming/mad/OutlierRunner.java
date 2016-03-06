@@ -7,7 +7,7 @@ import com.caseystella.analytics.extractor.DataPointExtractor;
 import com.caseystella.analytics.extractor.DataPointExtractorConfig;
 import com.caseystella.analytics.outlier.streaming.OutlierConfig;
 import com.caseystella.analytics.outlier.Severity;
-import com.caseystella.analytics.timeseries.OutlierPersister;
+import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandler;
 import com.caseystella.analytics.util.JSONUtil;
 import com.google.common.base.Function;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -37,19 +37,6 @@ public class OutlierRunner {
 
     public List<Outlier> run(File csv, int linesToSkip, final EnumSet<Severity> reportedSeverities, Function<Map.Entry<DataPoint, Outlier>, Void> callback) throws IOException {
         final List<Outlier> ret = new ArrayList<>();
-        config.setOutlierPersisterInstance(new OutlierPersister() {
-            @Override
-            public void persist(Outlier outlier) {
-                if(reportedSeverities.contains(outlier.getSeverity())) {
-                    ret.add(outlier);
-                }
-            }
-
-            @Override
-            public void configure(OutlierConfig config, Map<String, Object> context) {
-
-            }
-        });
         BufferedReader br = new BufferedReader(new FileReader(csv));
         int numLines = 0;
         for(String line = null;(line = br.readLine()) != null;numLines++){
@@ -57,7 +44,9 @@ public class OutlierRunner {
                 for(DataPoint dp : extractor.extract(null, Bytes.toBytes(line))) {
                     Outlier o = config.getOutlierAlgorithm().analyze(dp);
                     callback.apply(new AbstractMap.SimpleEntry<>(dp, o));
-                    config.getOutlierPersister().persist(o);
+                    if(reportedSeverities.contains(o.getSeverity())) {
+                        ret.add(o);
+                    }
                 }
             }
         }

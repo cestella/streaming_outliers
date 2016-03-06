@@ -3,8 +3,8 @@ package com.caseystella.analytics.outlier.streaming;
 import com.caseystella.analytics.distribution.GlobalStatistics;
 import com.caseystella.analytics.distribution.config.RotationConfig;
 import com.caseystella.analytics.distribution.scaling.ScalingFunctions;
-import com.caseystella.analytics.timeseries.OutlierPersister;
-import com.caseystella.analytics.timeseries.OutlierPersisters;
+import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandler;
+import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandlers;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +14,6 @@ public class OutlierConfig {
     private RotationConfig chunkingPolicy;
     private GlobalStatistics globalStatistics;
     private OutlierAlgorithm outlierAlgorithm;
-    private OutlierPersister outlierPersister;
     private ScalingFunctions scalingFunction = null;
     private Map<String, Object> config = new HashMap<>();
 
@@ -25,18 +24,6 @@ public class OutlierConfig {
 
     public GlobalStatistics getGlobalStatistics() {
         return globalStatistics;
-    }
-
-    public OutlierPersister getOutlierPersister() {
-        return outlierPersister;
-    }
-
-    public void setOutlierPersister(String outlierPersister) {
-        this.outlierPersister = OutlierPersisters.newInstance(outlierPersister);
-    }
-
-    public void setOutlierPersisterInstance(OutlierPersister persister) {
-        this.outlierPersister = persister;
     }
 
     public OutlierAlgorithm getOutlierAlgorithm() {

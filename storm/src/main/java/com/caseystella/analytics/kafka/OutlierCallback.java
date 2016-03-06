@@ -4,7 +4,7 @@ import com.caseystella.analytics.DataPoint;
 import com.caseystella.analytics.outlier.Outlier;
 import com.caseystella.analytics.outlier.streaming.OutlierAlgorithm;
 import com.caseystella.analytics.outlier.streaming.OutlierConfig;
-import com.caseystella.analytics.timeseries.OutlierPersister;
+import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandler;
 import storm.kafka.Callback;
 import storm.kafka.EmitContext;
 
@@ -14,7 +14,7 @@ import java.util.List;
 public class OutlierCallback implements Callback {
     OutlierConfig outlierConfig;
     OutlierAlgorithm outlierAlgorithm;
-    OutlierPersister outlierPersister;
+    TimeseriesDatabaseHandler outlierPersister;
     public OutlierCallback(OutlierConfig outlierConfig) {
         this.outlierConfig = outlierConfig;
     }
@@ -32,8 +32,6 @@ public class OutlierCallback implements Callback {
     public void initialize(EmitContext context) {
         outlierAlgorithm = outlierConfig.getOutlierAlgorithm();
         outlierAlgorithm.configure(outlierConfig);
-        outlierPersister = outlierConfig.getOutlierPersister();
-        outlierPersister.configure(outlierConfig, context);
     }
 
     /**
