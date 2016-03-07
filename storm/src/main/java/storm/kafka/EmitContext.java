@@ -1,22 +1,36 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package storm.kafka;
 
 import backtype.storm.task.TopologyContext;
-import com.google.common.base.Function;
-import com.google.common.base.Functions;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
-import java.util.*;
+import java.util.EnumMap;
+import java.util.Map;
 
-public class EmitContext implements Cloneable,Serializable, Map<String, Object> {
+public class EmitContext implements Cloneable,Serializable {
     static final long serialVersionUID = 0xDEADBEEFL;
 
     public enum Type{
-         MESSAGE_ID(PartitionManager.KafkaMessageId.class)
-        ,STREAM_ID(String.class)
+        STREAM_ID(String.class)
+        ,TOPIC(String.class)
+        ,STORM_CONFIG(Map.class)
+        ,PARTITION(Integer.class)
         ,TASK_ID(Integer.class)
         ,UUID(String.class)
         ,SPOUT_CONFIG(SpoutConfig.class)
@@ -66,197 +80,66 @@ public class EmitContext implements Cloneable,Serializable, Map<String, Object> 
         }
     }
 
-    private Type stringToKey(Object k) {
-        return Type.valueOf(k.toString());
-    }
-
     /**
-     * Returns the number of key-value mappings in this map.
+     * Creates and returns a copy of this object.  The precise meaning
+     * of "copy" may depend on the class of the object. The general
+     * intent is that, for any object {@code x}, the expression:
+     * <blockquote>
+     * <pre>
+     * x.clone() != x</pre></blockquote>
+     * will be true, and that the expression:
+     * <blockquote>
+     * <pre>
+     * x.clone().getClass() == x.getClass()</pre></blockquote>
+     * will be {@code true}, but these are not absolute requirements.
+     * While it is typically the case that:
+     * <blockquote>
+     * <pre>
+     * x.clone().equals(x)</pre></blockquote>
+     * will be {@code true}, this is not an absolute requirement.
      *
-     * @return the number of key-value mappings in this map
+     * By convention, the returned object should be obtained by calling
+     * {@code super.clone}.  If a class and all of its superclasses (except
+     * {@code Object}) obey this convention, it will be the case that
+     * {@code x.clone().getClass() == x.getClass()}.
+     *
+     * By convention, the object returned by this method should be independent
+     * of this object (which is being cloned).  To achieve this independence,
+     * it may be necessary to modify one or more fields of the object returned
+     * by {@code super.clone} before returning it.  Typically, this means
+     * copying any mutable objects that comprise the internal "deep structure"
+     * of the object being cloned and replacing the references to these
+     * objects with references to the copies.  If a class contains only
+     * primitive fields or references to immutable objects, then it is usually
+     * the case that no fields in the object returned by {@code super.clone}
+     * need to be modified.
+     *
+     * The method {@code clone} for class {@code Object} performs a
+     * specific cloning operation. First, if the class of this object does
+     * not implement the interface {@code Cloneable}, then a
+     * {@code CloneNotSupportedException} is thrown. Note that all arrays
+     * are considered to implement the interface {@code Cloneable} and that
+     * the return type of the {@code clone} method of an array type {@code T[]}
+     * is {@code T[]} where T is any reference or primitive type.
+     * Otherwise, this method creates a new instance of the class of this
+     * object and initializes all its fields with exactly the contents of
+     * the corresponding fields of this object, as if by assignment; the
+     * contents of the fields are not themselves cloned. Thus, this method
+     * performs a "shallow copy" of this object, not a "deep copy" operation.
+     *
+     * The class {@code Object} does not itself implement the interface
+     * {@code Cloneable}, so calling the {@code clone} method on an object
+     * whose class is {@code Object} will result in throwing an
+     * exception at run time.
+     *
+     * @return a clone of this instance.
+     * @throws CloneNotSupportedException if the object's class does not
+     *                                    support the {@code Cloneable} interface. Subclasses
+     *                                    that override the {@code clone} method can also
+     *                                    throw this exception to indicate that an instance cannot
+     *                                    be cloned.
+     * @see Cloneable
      */
-    @Override
-    public int size() {
-        return _context.size();
-    }
-
-    /**
-     * Returns <tt>true</tt> if this map maps one or more keys to the
-     * specified value.
-     *
-     * @param value the value whose presence in this map is to be tested
-     * @return <tt>true</tt> if this map maps one or more keys to this value
-     */
-    @Override
-    public boolean containsValue(Object value) {
-        return _context.containsValue(value);
-    }
-
-    /**
-     * Returns <tt>true</tt> if this map contains a mapping for the specified
-     * key.
-     *
-     * @param key the key whose presence in this map is to be tested
-     * @return <tt>true</tt> if this map contains a mapping for the specified
-     *            key
-     */
-    @Override
-    public boolean containsKey(Object key) {
-        return _context.containsKey(stringToKey(key));
-    }
-
-    /**
-     * Returns the value to which the specified key is mapped,
-     * or {@code null} if this map contains no mapping for the key.
-     *
-     * <p>More formally, if this map contains a mapping from a key
-     * {@code k} to a value {@code v} such that {@code (key == k)},
-     * then this method returns {@code v}; otherwise it returns
-     * {@code null}.  (There can be at most one such mapping.)
-     *
-     * <p>A return value of {@code null} does not <i>necessarily</i>
-     * indicate that the map contains no mapping for the key; it's also
-     * possible that the map explicitly maps the key to {@code null}.
-     * The {@link #containsKey containsKey} operation may be used to
-     * distinguish these two cases.
-     * @param key
-     */
-    @Override
-    public Object get(Object key) {
-        return _context.get(stringToKey(key));
-    }
-
-    /**
-     * Associates the specified value with the specified key in this map.
-     * If the map previously contained a mapping for this key, the old
-     * value is replaced.
-     *
-     * @param key the key with which the specified value is to be associated
-     * @param value the value to be associated with the specified key
-     *
-     * @return the previous value associated with specified key, or
-     *     <tt>null</tt> if there was no mapping for key.  (A <tt>null</tt>
-     *     return can also indicate that the map previously associated
-     *     <tt>null</tt> with the specified key.)
-     * @throws NullPointerException if the specified key is null
-     */
-    public Object put(String key, Object value) {
-        return _context.put(stringToKey(key), value);
-    }
-
-    /**
-     * Removes the mapping for this key from this map if present.
-     *
-     * @param key the key whose mapping is to be removed from the map
-     * @return the previous value associated with specified key, or
-     *     <tt>null</tt> if there was no entry for key.  (A <tt>null</tt>
-     *     return can also indicate that the map previously associated
-     *     <tt>null</tt> with the specified key.)
-     */
-    @Override
-    public Object remove(Object key) {
-        return _context.remove(stringToKey(key));
-    }
-
-    /**
-     * Copies all of the mappings from the specified map to this map.
-     * These mappings will replace any mappings that this map had for
-     * any of the keys currently in the specified map.
-     *
-     * @param m the mappings to be stored in this map
-     * @throws NullPointerException the specified map is null, or if
-     *     one or more keys in the specified map are null
-     */
-    public void putAll(Map<? extends String, ?> m) {
-        for(Map.Entry<? extends String, ?> kv : m.entrySet()) {
-            _context.put(stringToKey(kv.getKey()), kv.getValue());
-        }
-    }
-
-    /**
-     * Removes all mappings from this map.
-     */
-    @Override
-    public void clear() {
-        _context.clear();
-    }
-
-    /**
-     * Returns a {@link Set} view of the keys contained in this map.
-     * The returned set obeys the general contract outlined in
-     * {@link Map#keySet()}.  The set's iterator will return the keys
-     * in their natural order (the order in which the enum constants
-     * are declared).
-     *
-     * @return a set view of the keys contained in this enum map
-     */
-    @Override
-    public Set<String> keySet() {
-        return Sets.newHashSet(Iterables.transform(_context.keySet(), Functions.toStringFunction()));
-    }
-
-    /**
-     * Returns a {@link Collection} view of the values contained in this map.
-     * The returned collection obeys the general contract outlined in
-     * {@link Map#values()}.  The collection's iterator will return the
-     * values in the order their corresponding keys appear in map,
-     * which is their natural order (the order in which the enum constants
-     * are declared).
-     *
-     * @return a collection view of the values contained in this map
-     */
-    @Override
-    public Collection<Object> values() {
-        return _context.values();
-    }
-
-    /**
-     * Returns a {@link Set} view of the mappings contained in this map.
-     * The returned set obeys the general contract outlined in
-     * {@link Map#keySet()}.  The set's iterator will return the
-     * mappings in the order their keys appear in map, which is their
-     * natural order (the order in which the enum constants are declared).
-     *
-     * @return a set view of the mappings contained in this enum map
-     */
-    @Override
-    public Set<Entry<String, Object>> entrySet() {
-        return Sets.newHashSet(Iterables.transform(_context.entrySet(), new Function<Entry<Type, Object>, Entry<String, Object>>() {
-            @Nullable
-            @Override
-            public Entry<String, Object> apply(@Nullable Entry<Type, Object> typeObjectEntry) {
-                return new AbstractMap.SimpleEntry<>(typeObjectEntry.getKey().toString(), typeObjectEntry.getValue());
-            }
-        }));
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * <p>This implementation returns <tt>size() == 0</tt>.
-     */
-    @Override
-    public boolean isEmpty() {
-        return _context.isEmpty();
-    }
-
-    /**
-     * Returns a string representation of this map.  The string representation
-     * consists of a list of key-value mappings in the order returned by the
-     * map's <tt>entrySet</tt> view's iterator, enclosed in braces
-     * (<tt>"{}"</tt>).  Adjacent mappings are separated by the characters
-     * <tt>", "</tt> (comma and space).  Each key-value mapping is rendered as
-     * the key followed by an equals sign (<tt>"="</tt>) followed by the
-     * associated value.  Keys and values are converted to strings as by
-     * {@link String#valueOf(Object)}.
-     *
-     * @return a string representation of this map
-     */
-    @Override
-    public String toString() {
-        return _context.toString();
-    }
-
     @Override
     protected Object clone() throws CloneNotSupportedException {
         EmitContext context = new EmitContext(_context.clone());

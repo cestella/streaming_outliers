@@ -1,10 +1,30 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package storm.kafka;
 
 import backtype.storm.spout.ISpoutOutputCollector;
 import backtype.storm.spout.SpoutOutputCollector;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class CallbackCollector extends SpoutOutputCollector implements Serializable {
     static final long serialVersionUID = 0xDEADBEEFL;
@@ -18,6 +38,17 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
         this._context = context;
     }
 
+
+    public static int getPartition(Object messageIdObj) {
+        PartitionManager.KafkaMessageId messageId = (PartitionManager.KafkaMessageId) messageIdObj;
+        return messageId.partition.partition;
+    }
+
+    public static List<Integer> toTaskIds(Set<Integer> taskIdSet) {
+        List<Integer> ret = new ArrayList<>();
+        ret.addAll(taskIdSet);
+        return ret;
+    }
 
     /**
      * Emits a new tuple to the specified output stream with the given message ID.
@@ -34,10 +65,13 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
      */
     @Override
     public List<Integer> emit(String streamId, List<Object> tuple, Object messageId) {
-        List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.MESSAGE_ID, messageId)
+        Set<Integer> ret = new HashSet<>();
+        for(List<Object> t : _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.PARTITION, getPartition(messageId))
                                                                        .with(EmitContext.Type.STREAM_ID, streamId)
-                                        );
-        return _delegate.emit(streamId, t, messageId);
+                                        )) {
+            ret.addAll(_delegate.emit(streamId, t, messageId));
+        }
+        return toTaskIds(ret);
     }
 
     /**
@@ -54,8 +88,12 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
      */
     @Override
     public List<Integer> emit(List<Object> tuple, Object messageId) {
-        List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.MESSAGE_ID, messageId));
-        return _delegate.emit(t, messageId);
+        Set<Integer> ret = new HashSet<>();
+        for(List<Object> t : _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.PARTITION, getPartition(messageId)))) {
+
+            ret.addAll(_delegate.emit(t, messageId));
+        }
+        return toTaskIds(ret);
     }
 
     /**
@@ -67,8 +105,11 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
      */
     @Override
     public List<Integer> emit(List<Object> tuple) {
-        List<Object> t = _callback.apply(tuple, _context.cloneContext());
-        return _delegate.emit(t);
+        Set<Integer> ret = new HashSet<>();
+        for(List<Object> t : _callback.apply(tuple, _context.cloneContext())) {
+            ret.addAll(_delegate.emit(t));
+        }
+        return toTaskIds(ret);
     }
 
     /**
@@ -81,8 +122,11 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
      */
     @Override
     public List<Integer> emit(String streamId, List<Object> tuple) {
-        List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.STREAM_ID, streamId));
-        return _delegate.emit(streamId, t);
+        Set<Integer> ret = new HashSet<>();
+        for(List<Object> t : _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.STREAM_ID, streamId))) {
+            ret.addAll(_delegate.emit(streamId, t));
+        }
+        return toTaskIds(ret);
     }
 
     /**
@@ -98,11 +142,13 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
      */
     @Override
     public void emitDirect(int taskId, String streamId, List<Object> tuple, Object messageId) {
-        List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.STREAM_ID, streamId)
-                                                                       .with(EmitContext.Type.MESSAGE_ID, messageId)
+        for( List<Object> t : _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.STREAM_ID, streamId)
+                                                                       .with(EmitContext.Type.PARTITION, getPartition(messageId))
                                                                        .with(EmitContext.Type.TASK_ID, new Integer(taskId))
-                                        );
-        _delegate.emitDirect(taskId, streamId, t, messageId);
+                                        )) {
+
+            _delegate.emitDirect(taskId, streamId, t, messageId);
+        }
     }
 
     /**
@@ -117,10 +163,11 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
      */
     @Override
     public void emitDirect(int taskId, List<Object> tuple, Object messageId) {
-        List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.MESSAGE_ID, messageId)
+        for(List<Object> t : _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.PARTITION, getPartition(messageId))
                                                                        .with(EmitContext.Type.TASK_ID, new Integer(taskId))
-                       );
-        _delegate.emitDirect(taskId, t, messageId);
+                       )) {
+            _delegate.emitDirect(taskId, t, messageId);
+        }
     }
 
     /**
@@ -138,10 +185,11 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
      */
     @Override
     public void emitDirect(int taskId, String streamId, List<Object> tuple) {
-        List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.STREAM_ID, streamId)
+        for(List<Object> t : _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.STREAM_ID, streamId)
                                                                        .with(EmitContext.Type.TASK_ID, new Integer(taskId))
-                       );
-        _delegate.emitDirect(taskId, streamId, t);
+                       )) {
+            _delegate.emitDirect(taskId, streamId, t);
+        }
     }
 
     /**
@@ -158,8 +206,8 @@ public class CallbackCollector extends SpoutOutputCollector implements Serializa
      */
     @Override
     public void emitDirect(int taskId, List<Object> tuple) {
-
-        List<Object> t = _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.TASK_ID, new Integer(taskId)));
-        _delegate.emitDirect(taskId, t);
+        for(List<Object> t : _callback.apply(tuple, _context.cloneContext().with(EmitContext.Type.TASK_ID, new Integer(taskId)))) {
+            _delegate.emitDirect(taskId, t);
+        }
     }
 }

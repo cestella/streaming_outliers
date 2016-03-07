@@ -1,4 +1,4 @@
-package com.caseystella.analytics.kafka;
+package com.caseystella.analytics.outlier;
 
 import backtype.storm.tuple.Fields;
 import com.caseystella.analytics.DataPoint;
@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TimestampedExtractorScheme implements KeyValueScheme {
+
     private DataPointExtractor extractor = null;
     public TimestampedExtractorScheme(DataPointExtractorConfig config) {
         extractor = new DataPointExtractor(config);
@@ -30,6 +31,6 @@ public class TimestampedExtractorScheme implements KeyValueScheme {
 
     @Override
     public Fields getOutputFields() {
-        return new Fields("DP");
+        return new Fields(Constants.MEASUREMENT_ID, Constants.OUTLIER);
     }
 }

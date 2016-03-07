@@ -1,7 +1,8 @@
-package com.caseystella.analytics.kafka;
+package com.caseystella.analytics.outlier;
 
 import com.caseystella.analytics.extractor.DataPointExtractorConfig;
 import com.caseystella.analytics.outlier.streaming.OutlierConfig;
+import com.caseystella.analytics.timeseries.PersistenceConfig;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import storm.kafka.Callback;
@@ -13,13 +14,16 @@ import java.util.ArrayList;
 
 public class OutlierKafkaSpout extends CallbackKafkaSpout {
     private OutlierConfig outlierConfig;
+    private PersistenceConfig persistenceConfig;
     public OutlierKafkaSpout( SpoutConfig spoutConfig
                             , OutlierConfig outlierConfig
                             , DataPointExtractorConfig extractorConfig
+                            , PersistenceConfig persistenceConfig
                             , String zkConnectString
                             )
     {
         super(spoutConfig, OutlierCallback.class);
+        this.persistenceConfig = persistenceConfig;
         this.outlierConfig = outlierConfig;
         spoutConfig.scheme = new KeyValueSchemeAsMultiScheme(new TimestampedExtractorScheme(extractorConfig));
         if(zkConnectString != null && zkConnectString.length() > 0) {
@@ -43,6 +47,6 @@ public class OutlierKafkaSpout extends CallbackKafkaSpout {
 
     @Override
     protected Callback createCallback(Class<? extends Callback> callbackClass) {
-        return new OutlierCallback(outlierConfig);
+        return new OutlierCallback(outlierConfig, persistenceConfig);
     }
 }

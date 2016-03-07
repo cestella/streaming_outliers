@@ -4,7 +4,9 @@ import com.caseystella.analytics.DataPoint;
 import com.caseystella.analytics.outlier.Outlier;
 import com.caseystella.analytics.outlier.Severity;
 import com.caseystella.analytics.timeseries.tsdb.TSDBHandler;
+import com.google.common.base.Function;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +31,12 @@ public enum TimeseriesDatabaseHandlers {
         return tags;
     }
 
+    public static Function<Object, Void> EMPTY_CALLBACK  = new Function<Object, Void>() {
+        @Override
+        public Void apply(@Nullable Object input) {
+            return null;
+        }
+    };
 
     public static String getStreamingOutlierMetric(String baseMetric) {
         return baseMetric + STREAMING_OUTLIER_SUFFIX;

@@ -1,37 +1,74 @@
-package com.caseystella.analytics.kafka;
+package com.caseystella.analytics.outlier;
 
 import com.caseystella.analytics.DataPoint;
-import com.caseystella.analytics.outlier.Outlier;
 import com.caseystella.analytics.outlier.streaming.OutlierAlgorithm;
 import com.caseystella.analytics.outlier.streaming.OutlierConfig;
+import com.caseystella.analytics.timeseries.PersistenceConfig;
 import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandler;
+import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandlers;
+import com.caseystella.analytics.timeseries.tsdb.TSDBHandler;
+import com.google.common.collect.ImmutableList;
+import org.apache.hadoop.conf.Configuration;
 import storm.kafka.Callback;
 import storm.kafka.EmitContext;
 
 import java.io.Closeable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class OutlierCallback implements Callback {
     OutlierConfig outlierConfig;
     OutlierAlgorithm outlierAlgorithm;
-    TimeseriesDatabaseHandler outlierPersister;
-    public OutlierCallback(OutlierConfig outlierConfig) {
+    TimeseriesDatabaseHandler tsdbHandler;
+    PersistenceConfig persistenceConfig;
+
+    public OutlierCallback(OutlierConfig outlierConfig, PersistenceConfig persistenceConfig) {
         this.outlierConfig = outlierConfig;
+        this.persistenceConfig = persistenceConfig;
     }
 
     @Override
-    public List<Object> apply(List<Object> tuple, EmitContext context) {
+    public Iterable<List<Object>> apply(List<Object> tuple, EmitContext context) {
+        List<List<Object>> ret = new ArrayList<>();
         for(Object o : tuple) {
             DataPoint dp = (DataPoint)o;
+            String measureId = context.get(EmitContext.Type.TOPIC) + "." + dp.getSource();
+            dp.setSource(measureId);
+            //this guy gets persisted to TSDB
+            tsdbHandler.persist(dp.getSource()
+                           , dp
+                           , TimeseriesDatabaseHandlers.getBasicTags(dp)
+                           , TimeseriesDatabaseHandlers.EMPTY_CALLBACK
+                           );
+            //now let's look for outliers
             Outlier outlier = outlierAlgorithm.analyze(dp);
+            if(outlier.getSeverity() == Severity.SEVERE_OUTLIER) {
+                ret.add(ImmutableList.of(measureId, outlier));
+                tsdbHandler.persist(TimeseriesDatabaseHandlers.getStreamingOutlierMetric(dp.getSource())
+                           , dp
+                           , TimeseriesDatabaseHandlers.getOutlierTags(outlier.getSeverity())
+                           , TimeseriesDatabaseHandlers.EMPTY_CALLBACK
+                           );
+            }
+
         }
-        return tuple;
+        return ret;
     }
 
     @Override
     public void initialize(EmitContext context) {
         outlierAlgorithm = outlierConfig.getOutlierAlgorithm();
         outlierAlgorithm.configure(outlierConfig);
+        Map stormConf = context.get(EmitContext.Type.STORM_CONFIG);
+        if(!persistenceConfig.getConfig().containsKey(TSDBHandler.TSDB_CONFIG) && stormConf.containsKey(Constants.HBASE_CONFIG_KEY)) {
+            Configuration config = (Configuration) stormConf.get(Constants.HBASE_CONFIG_KEY);
+            persistenceConfig.getConfig().put(TSDBHandler.TSDB_CONFIG, config);
+        }
+        tsdbHandler = persistenceConfig.getDatabaseHandler();
+        tsdbHandler.configure(persistenceConfig.getConfig());
+        tsdbHandler = persistenceConfig.getDatabaseHandler();
+        tsdbHandler.configure(persistenceConfig.getConfig());
     }
 
     /**

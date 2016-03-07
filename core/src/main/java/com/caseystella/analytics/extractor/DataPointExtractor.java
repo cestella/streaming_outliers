@@ -49,7 +49,7 @@ public class DataPointExtractor implements Extractor {
                     for (String sourceField : measurement.getSourceFields()) {
                         sources.add(unionMap.get(sourceField).toString());
                     }
-                    dp.setSource(Joiner.on("/").join(sources));
+                    dp.setSource(Joiner.on(".").join(sources));
                 }
                 Object tsObj = unionMap.get(measurement.getTimestampField());
                 if(tsObj == null) {
