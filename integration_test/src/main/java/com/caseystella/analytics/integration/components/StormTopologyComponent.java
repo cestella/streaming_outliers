@@ -20,6 +20,8 @@ package com.caseystella.analytics.integration.components;
 import backtype.storm.Config;
 import backtype.storm.LocalCluster;
 import backtype.storm.generated.StormTopology;
+import backtype.storm.topology.TopologyBuilder;
+import backtype.storm.utils.Utils;
 import com.caseystella.analytics.integration.InMemoryComponent;
 import com.caseystella.analytics.integration.UnableToStartException;
 import org.apache.storm.flux.FluxBuilder;
@@ -35,35 +37,48 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
 
-public class FluxTopologyComponent implements InMemoryComponent {
+public class StormTopologyComponent implements InMemoryComponent {
     LocalCluster stormCluster;
     String topologyName;
     File topologyLocation;
     Properties topologyProperties;
-
+    TopologyBuilder topologyBuilder;
+    Config stormConfig;
     public static class Builder {
         String topologyName;
-        File topologyLocation;
+        File fluxLocation;
         Properties topologyProperties;
+        TopologyBuilder topology;
+        Config config;
+        public Builder withTopology(TopologyBuilder topology) {
+            return withTopology(topology, new Config());
+        }
+        public Builder withTopology(TopologyBuilder topology, Config config) {
+            this.topology = topology;
+            this.config = config;
+            return this;
+        }
         public Builder withTopologyName(String name) {
             this.topologyName = name;
             return this;
         }
-        public Builder withTopologyLocation(File location) {
-            this.topologyLocation = location;
-            return this;
-        }
-        public Builder withTopologyProperties(Properties properties) {
+        public Builder withFluxLocation(File location, Properties properties) {
+            this.fluxLocation = location;
             this.topologyProperties = properties;
             return this;
         }
 
-        public FluxTopologyComponent build() {
-            return new FluxTopologyComponent(topologyName, topologyLocation, topologyProperties);
+        public StormTopologyComponent build() {
+            return new StormTopologyComponent(topologyName, fluxLocation, topologyProperties);
         }
     }
 
-    public FluxTopologyComponent(String topologyName, File topologyLocation, Properties topologyProperties) {
+    StormTopologyComponent(String topologyName, TopologyBuilder builder, Config config) {
+        this.topologyBuilder = builder;
+        this.topologyName = topologyName;
+        this.stormConfig = config;
+    }
+    StormTopologyComponent(String topologyName, File topologyLocation, Properties topologyProperties) {
         this.topologyName = topologyName;
         this.topologyLocation = topologyLocation;
         this.topologyProperties = topologyProperties;
@@ -85,6 +100,10 @@ public class FluxTopologyComponent implements InMemoryComponent {
         return topologyProperties;
     }
 
+    public Config getStormConfig() {
+        return stormConfig;
+    }
+
     public void start() throws UnableToStartException {
         try {
             stormCluster = new LocalCluster();
@@ -98,9 +117,21 @@ public class FluxTopologyComponent implements InMemoryComponent {
     }
 
     public void submitTopology() throws NoSuchMethodException, IOException, InstantiationException, TException, IllegalAccessException, InvocationTargetException, ClassNotFoundException {
-        startTopology(getTopologyName(), getTopologyLocation(), getTopologyProperties());
+        if(topologyBuilder == null) {
+            submitFluxTopology(getTopologyName(), getTopologyLocation(), getTopologyProperties());
+        }
+        else {
+            submitTopology(getTopologyName(), topologyBuilder, stormConfig);
+        }
     }
-    private void startTopology(String topologyName, File topologyLoc, Properties properties) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, TException {
+
+    public void submitTopology( TopologyBuilder builder, Config config) {
+        submitTopology(getTopologyName(), builder, config);
+    }
+    public void submitTopology(String topologyName, TopologyBuilder builder, Config config) {
+        stormCluster.submitTopology(topologyName, config, builder.createTopology());
+    }
+    public void submitFluxTopology(String topologyName, File topologyLoc, Properties properties) throws IOException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException, TException {
         TopologyDef topologyDef = loadYaml(topologyName, topologyLoc, properties);
         Config conf = FluxBuilder.buildConfig(topologyDef);
         ExecutionContext context = new ExecutionContext(topologyDef, conf);
@@ -127,6 +158,4 @@ public class FluxTopologyComponent implements InMemoryComponent {
             return null;
         }
     }
-
-
 }

@@ -44,6 +44,12 @@
       <artifactId>kafka_2.9.2</artifactId>
       <version>${global_kafka_version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.caseystella.analytics</groupId>
+      <artifactId>integration_test</artifactId>
+      <version>0.1</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
