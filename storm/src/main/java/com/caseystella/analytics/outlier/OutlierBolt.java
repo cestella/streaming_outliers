@@ -98,19 +98,21 @@ public class OutlierBolt extends BaseRichBolt {
         Outlier outlier = (Outlier) input.getValueByField(Constants.OUTLIER);
         DataPoint dp = outlier.getDataPoint();
         List<DataPoint> context = tsdbHandler.retrieve(dp.getSource(), dp, outlier.getRange());
-        Outlier realOutlier = outlierAlgorithm.analyze(outlier, context, dp);
-        if(realOutlier.getSeverity() == Severity.SEVERE_OUTLIER) {
-            //write out to tsdb
-            tsdbHandler.persist(TimeseriesDatabaseHandlers.getBatchOutlierMetric(dp.getSource())
-                           , dp
-                           , TimeseriesDatabaseHandlers.getOutlierTags(realOutlier.getSeverity())
-                           , TimeseriesDatabaseHandlers.EMPTY_CALLBACK
-                           );
-            //emit the outlier for downstream processing if necessary.
-            collector.emit(ImmutableList.of(input.getValueByField(Constants.MEASUREMENT_ID)
-                                           , realOutlier
-                                           )
-                          );
+        if(context.size() > 0) {
+            Outlier realOutlier = outlierAlgorithm.analyze(outlier, context, dp);
+            if (realOutlier.getSeverity() == Severity.SEVERE_OUTLIER) {
+                //write out to tsdb
+                tsdbHandler.persist(TimeseriesDatabaseHandlers.getBatchOutlierMetric(dp.getSource())
+                        , dp
+                        , TimeseriesDatabaseHandlers.getOutlierTags(realOutlier.getSeverity())
+                        , TimeseriesDatabaseHandlers.EMPTY_CALLBACK
+                );
+                //emit the outlier for downstream processing if necessary.
+                collector.emit(ImmutableList.of(input.getValueByField(Constants.MEASUREMENT_ID)
+                        , realOutlier
+                        )
+                );
+            }
         }
         collector.ack(input);
     }

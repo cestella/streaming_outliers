@@ -52,7 +52,7 @@ public class StreamingOutlierIntegrationTest {
     public static String extractorConfigStr;
 
     /**
-    {
+   {
      "rotationPolicy" : {
                         "type" : "BY_AMOUNT"
                        ,"amount" : 100
@@ -63,17 +63,15 @@ public class StreamingOutlierIntegrationTest {
                        ,"amount" : 10
                        ,"unit" : "POINTS"
                          }
+     ,"globalStatistics" : {
+                         }
      ,"outlierAlgorithm" : "SKETCHY_MOVING_MAD"
-     ,"globalStatistics": {
-                          "min" : -200
-                          }
      ,"config" : {
                  "minAmountToPredict" : 100
                 ,"zscoreCutoffs" : {
-                                    "NORMAL" : 0.000000000000001
-                                   ,"MODERATE_OUTLIER" : 1.5
+                                    "NORMAL" : 3.5
+                                   ,"MODERATE_OUTLIER" : 5
                                    }
-                ,"minZscorePercentile" : 95
                  }
      }
      */
@@ -103,20 +101,21 @@ public class StreamingOutlierIntegrationTest {
         @Nullable
         @Override
         public byte[] apply(@Nullable DataPoint dataPoint) {
-
-            return (format.format(new Date(dataPoint.getTimestamp())) + "," + dataPoint.getValue()).getBytes();
+            String ts = format.format(new Date(dataPoint.getTimestamp()));
+            return ( ts + "," + dataPoint.getValue()).getBytes();
         }
     };
 
     public Iterable<byte[]> getMessages() {
         Random r = new Random(0);
         List<DataPoint> points = new ArrayList<>();
-        for(int i = 0; i < 100;++i) {
+        int i = 0;
+        for(i = 0; i < 1000*1000;i += 1000) {
             double val = r.nextDouble()*1000;
             DataPoint dp = (new DataPoint(i, val, null, "foo"));
             points.add(dp);
         }
-        points.add(new DataPoint(101, 10000, null, "foo"));
+        points.add(new DataPoint(i, 10000, null, "foo"));
         return Iterables.transform(points, TO_STR);
     }
     @Test
@@ -173,7 +172,7 @@ public class StreamingOutlierIntegrationTest {
                 List<DataPoint> outliers = new ArrayList<>();
                 @Override
                 public ReadinessState process(ComponentRunner runner) {
-                    Collection<DataPoint> points = InMemoryTimeSeriesDB.getAllPoints(TimeseriesDatabaseHandlers.getBatchOutlierMetric(KAFKA_TOPIC));
+                    Collection<DataPoint> points = InMemoryTimeSeriesDB.getAllPoints(TimeseriesDatabaseHandlers.getBatchOutlierMetric(KAFKA_TOPIC + ".benchmark"));
                     if(points.size() > 0) {
                         outliers.addAll(points);
                         return ReadinessState.READY;
@@ -187,7 +186,7 @@ public class StreamingOutlierIntegrationTest {
                 }
             });
             Assert.assertEquals(outliers.size(), 1);
-            Assert.assertEquals(outliers.get(0).getTimestamp(), 101);
+            Assert.assertEquals(outliers.get(0).getTimestamp(), 1000*1000);
         }
         finally {
             runner.stop();
