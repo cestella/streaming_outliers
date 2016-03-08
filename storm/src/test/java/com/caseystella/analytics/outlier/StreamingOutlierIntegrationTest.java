@@ -83,6 +83,7 @@ public class StreamingOutlierIntegrationTest {
     /**
      {
       "algorithm" : "RAD"
+     ,"headStart" : 0
      , "config" : {}
      }
      */

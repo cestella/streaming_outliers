@@ -1,13 +1,12 @@
 package com.caseystella.analytics.outlier.streaming.mad;
 
 import com.caseystella.analytics.DataPoint;
-import com.caseystella.analytics.Extractor;
+import com.caseystella.analytics.extractor.Extractor;
 import com.caseystella.analytics.outlier.Outlier;
 import com.caseystella.analytics.extractor.DataPointExtractor;
 import com.caseystella.analytics.extractor.DataPointExtractorConfig;
 import com.caseystella.analytics.outlier.streaming.OutlierConfig;
 import com.caseystella.analytics.outlier.Severity;
-import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandler;
 import com.caseystella.analytics.util.JSONUtil;
 import com.google.common.base.Function;
 import org.apache.hadoop.hbase.util.Bytes;

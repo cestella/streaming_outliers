@@ -6,10 +6,11 @@ import com.caseystella.analytics.distribution.scaling.ScalingFunctions;
 import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandler;
 import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandlers;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class OutlierConfig {
+public class OutlierConfig implements Serializable {
     private RotationConfig rotationPolicy;
     private RotationConfig chunkingPolicy;
     private GlobalStatistics globalStatistics;

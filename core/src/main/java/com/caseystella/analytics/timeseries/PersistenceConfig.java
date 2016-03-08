@@ -1,8 +1,9 @@
 package com.caseystella.analytics.timeseries;
 
+import java.io.Serializable;
 import java.util.Map;
 
-public class PersistenceConfig {
+public class PersistenceConfig  implements Serializable {
     TimeseriesDatabaseHandler databaseHandler;
     Map<String, Object> config;
 

@@ -3,7 +3,9 @@ package com.caseystella.analytics.distribution.config;
 import com.caseystella.analytics.distribution.config.Type;
 import com.caseystella.analytics.distribution.config.Unit;
 
-public class RotationConfig {
+import java.io.Serializable;
+
+public class RotationConfig implements Serializable {
     Type type;
     Long amount;
     Unit unit;

@@ -20,13 +20,13 @@ import java.util.List;
 import java.util.Map;
 
 public class OutlierBolt extends BaseRichBolt {
-    private static final long HEAD_START = 30*1000;
     private OutlierConfig outlierConfig;
     private PersistenceConfig persistenceConfig;
     private transient OutlierAlgorithm outlierAlgorithm;
     private transient TimeseriesDatabaseHandler tsdbHandler;
     private transient OutputCollector collector;
     boolean isFirst = true;
+    private int headStart = 0;
     public OutlierBolt() {
 
     }
@@ -62,6 +62,7 @@ public class OutlierBolt extends BaseRichBolt {
             Configuration config = (Configuration) stormConf.get(Constants.HBASE_CONFIG_KEY);
             persistenceConfig.getConfig().put(TSDBHandler.TSDB_CONFIG, config);
         }
+        headStart = outlierConfig.getHeadStart();
         tsdbHandler = persistenceConfig.getDatabaseHandler();
         tsdbHandler.configure(persistenceConfig.getConfig());
     }
@@ -90,7 +91,7 @@ public class OutlierBolt extends BaseRichBolt {
             //we could be getting our outliers before they show up in the TSDB due to async puts in
             //the outliercallback.  Thus, we're going to give TSDB a head start;
             try {
-                Thread.sleep(HEAD_START);
+                Thread.sleep(headStart);
             } catch (InterruptedException e) {
             }
         }

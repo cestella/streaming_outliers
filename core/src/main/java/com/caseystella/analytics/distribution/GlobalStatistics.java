@@ -1,6 +1,8 @@
 package com.caseystella.analytics.distribution;
 
-public class GlobalStatistics {
+import java.io.Serializable;
+
+public class GlobalStatistics implements Serializable {
     Double mean;
     Double min;
     Double max;

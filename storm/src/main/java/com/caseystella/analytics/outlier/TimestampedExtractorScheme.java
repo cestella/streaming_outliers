@@ -25,8 +25,11 @@ public class TimestampedExtractorScheme implements KeyValueScheme {
     }
 
     @Override
-    public List<Object> deserialize(byte[] ser) {
-        throw new UnsupportedOperationException("Unsupported operation, only support deserializing both keys and values");
+    public List<Object> deserialize(byte[] value) {
+        Iterable<DataPoint> dataPoints = extractor.extract(new byte[] {}, value);
+        List<Object> ret = new ArrayList<>();
+        Iterables.addAll(ret, dataPoints);
+        return ret;
     }
 
     @Override

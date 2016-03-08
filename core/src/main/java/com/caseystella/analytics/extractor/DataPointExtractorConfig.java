@@ -5,13 +5,14 @@ import com.caseystella.analytics.converters.primitive.PrimitiveConverter;
 import com.caseystella.analytics.util.JSONUtil;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class DataPointExtractorConfig {
+public class DataPointExtractorConfig implements Serializable {
 
-    public static class Measurement {
+    public static class Measurement implements Serializable {
         private String source;
         private List<String> sourceFields;
         private String timestampField;
