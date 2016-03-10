@@ -110,7 +110,7 @@ public class ExtractorsTest {
             Iterable<DataPoint> dataPoints = extractor.extract(Bytes.toBytes(0L), Bytes.toBytes("\"id_1\",\"optometrist\",\"2016-02-16\",\"75.00\",\"Food\""));
             Assert.assertEquals(1, Iterables.size(dataPoints));
             DataPoint dp = Iterables.get(dataPoints, 0);
-            Assert.assertEquals("optometrist/Food", dp.getSource());
+            Assert.assertEquals("optometrist.Food", dp.getSource());
             Assert.assertEquals(2, dp.getMetadata().size());
             Assert.assertEquals("Food", dp.getMetadata().get("transaction_reason"));
             Assert.assertEquals("optometrist", dp.getMetadata().get("physician_specialty"));

@@ -9,6 +9,7 @@ import backtype.storm.utils.NimbusClient;
 import backtype.storm.utils.Utils;
 import com.caseystella.analytics.extractor.DataPointExtractorConfig;
 import com.caseystella.analytics.timeseries.PersistenceConfig;
+import com.caseystella.analytics.timeseries.TSConstants;
 import com.caseystella.analytics.util.JSONUtil;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -93,6 +94,15 @@ public class Topology {
                 Option o = new Option(s, "num_workers", true, "Number of workers");
                 o.setArgName("N");
                 o.setRequired(true);
+                return o;
+            }
+        })
+        ,FROM_BEGINNING("b", new OptionHandler() {
+            @Nullable
+            @Override
+            public Option apply(@Nullable String s) {
+                Option o = new Option(s, "from_beginning", false, "Run from the beginning of the queue.");
+                o.setRequired(false);
                 return o;
             }
         })
@@ -210,8 +220,8 @@ public class Topology {
         config.registerMetricsConsumer(LoggingMetricsConsumer.class);
 
         Configuration hadoopConfig = HBaseConfiguration.create();
-        clusterConf.put(Constants.HBASE_CONFIG_KEY, hadoopConfig);
-        config.put(Constants.HBASE_CONFIG_KEY, hadoopConfig);
+        clusterConf.put(TSConstants.HBASE_CONFIG_KEY, hadoopConfig);
+        config.put(TSConstants.HBASE_CONFIG_KEY, hadoopConfig);
         String topicName = OutlierOptions.TOPIC.get(cli);
         String topologyName = "streaming_outliers_" + topicName;
         String zkConnectString = hadoopConfig.get(HConstants.ZOOKEEPER_QUORUM) + ":" + hadoopConfig.get(HConstants.ZOOKEEPER_CLIENT_PORT);
@@ -222,7 +232,8 @@ public class Topology {
                                                 , String kafkaTopic
                                                 , String zkQuorum
                                                 , int numWorkers*/
-        TopologyBuilder topology = createTopology(extractorConfig, streamingOutlierConfig, batchOutlierConfig, persistenceConfig, topicName, zkConnectString, numWorkers, false);
+        boolean startAtBeginning = OutlierOptions.FROM_BEGINNING.has(cli);
+        TopologyBuilder topology = createTopology(extractorConfig, streamingOutlierConfig, batchOutlierConfig, persistenceConfig, topicName, zkConnectString, numWorkers, startAtBeginning);
         StormSubmitter.submitTopologyWithProgressBar( topologyName, clusterConf, topology.createTopology());
         //Nimbus.Client client = NimbusClient.getConfiguredClient(clusterConf).getClient();
     }

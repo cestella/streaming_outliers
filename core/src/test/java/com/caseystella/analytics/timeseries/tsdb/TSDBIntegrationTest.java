@@ -7,6 +7,7 @@ import com.caseystella.analytics.integration.UnableToStartException;
 import com.caseystella.analytics.integration.components.TSDBComponent;
 import com.caseystella.analytics.outlier.Outlier;
 import com.caseystella.analytics.outlier.Severity;
+import com.caseystella.analytics.timeseries.TSConstants;
 import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandlers;
 import com.caseystella.analytics.util.DistributionUtil;
 import com.google.common.base.Function;
@@ -55,7 +56,7 @@ public class TSDBIntegrationTest {
         try {
             TSDBHandler handler = new TSDBHandler();
             handler.configure(new HashMap<String, Object>() {{
-                put(TSDBHandler.TSDB_CONFIG, tsdb.getConfig());
+                put(TSConstants.HBASE_CONFIG_KEY, tsdb.getConfig());
             }});
 
             int i = 0;
@@ -91,7 +92,7 @@ public class TSDBIntegrationTest {
                                    , TimeseriesDatabaseHandlers.getOutlierTags(Severity.SEVERE_OUTLIER)
                                    );
             List<DataPoint> context = handler.retrieve(metric, evaluationPoint, new SimpleTimeRange(offset, offset + 50));
-            Assert.assertEquals(51, context.size());
+            Assert.assertEquals(50, context.size());
             for (i = 0; i < context.size(); ++i) {
                 Assert.assertEquals(context.get(i).getTimestamp(), points.get(i).getTimestamp());
                 Assert.assertEquals(context.get(i).getValue(), points.get(i).getValue(), 1e-7);

@@ -1,5 +1,6 @@
 package com.caseystella.analytics.timeseries.tsdb;
 
+import com.caseystella.analytics.timeseries.TSConstants;
 import com.caseystella.analytics.DataPoint;
 import com.caseystella.analytics.distribution.TimeRange;
 import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandler;
@@ -20,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 
 public class TSDBHandler implements TimeseriesDatabaseHandler {
-    public static final String TSDB_CONFIG = "tsdb_config";
     public static final String DOWNSAMPLE_AGGREGATOR_CONFIG = "downsample_aggregator";
     public static final String DOWNSAMPLE_INTERVAL_CONFIG = "downsample_interval";
     private TSDB tsdb;
@@ -105,7 +105,7 @@ public class TSDBHandler implements TimeseriesDatabaseHandler {
     @Override
     public void configure(Map<String, Object> config) {
         try {
-            Object tsdbConfigObj = config.get(TSDB_CONFIG);
+            Object tsdbConfigObj = config.get(TSConstants.HBASE_CONFIG_KEY);
             if(tsdbConfigObj == null) {
                 tsdb = new TSDB(new TSDBConfig(HBaseConfiguration.create()));
             }

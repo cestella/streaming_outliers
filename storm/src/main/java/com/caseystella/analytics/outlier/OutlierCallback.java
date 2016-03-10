@@ -4,6 +4,7 @@ import com.caseystella.analytics.DataPoint;
 import com.caseystella.analytics.outlier.streaming.OutlierAlgorithm;
 import com.caseystella.analytics.outlier.streaming.OutlierConfig;
 import com.caseystella.analytics.timeseries.PersistenceConfig;
+import com.caseystella.analytics.timeseries.TSConstants;
 import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandler;
 import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandlers;
 import com.caseystella.analytics.timeseries.tsdb.TSDBHandler;
@@ -61,9 +62,9 @@ public class OutlierCallback implements Callback {
         outlierAlgorithm = outlierConfig.getOutlierAlgorithm();
         outlierAlgorithm.configure(outlierConfig);
         Map stormConf = context.get(EmitContext.Type.STORM_CONFIG);
-        if(!persistenceConfig.getConfig().containsKey(TSDBHandler.TSDB_CONFIG) && stormConf.containsKey(Constants.HBASE_CONFIG_KEY)) {
-            Configuration config = (Configuration) stormConf.get(Constants.HBASE_CONFIG_KEY);
-            persistenceConfig.getConfig().put(TSDBHandler.TSDB_CONFIG, config);
+        if(!persistenceConfig.getConfig().containsKey(TSConstants.HBASE_CONFIG_KEY) && stormConf.containsKey(TSConstants.HBASE_CONFIG_KEY)) {
+            Configuration config = (Configuration) stormConf.get(TSConstants.HBASE_CONFIG_KEY);
+            persistenceConfig.getConfig().put(TSConstants.HBASE_CONFIG_KEY, config);
         }
         tsdbHandler = persistenceConfig.getDatabaseHandler();
         tsdbHandler.configure(persistenceConfig.getConfig());

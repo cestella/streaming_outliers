@@ -1,0 +1,20 @@
+{
+         "valueConverter" : "CSVConverter"
+       , "valueConverterConfig" : {
+                                    "columnMap" : {
+                                                  "timestamp" : 0
+                                                 ,"data" : 1
+                                                  }
+                                  }
+       , "measurements" : [
+            {
+             "source" : "benchmark"
+            ,"timestampField" : "timestamp"
+            ,"timestampConverter" : "DateConverter"
+            ,"timestampConverterConfig" : {
+                                            "format" : "yyyy-MM-dd HH:mm:ss"
+                                          }
+            ,"measurementField" : "data"
+            }
+                          ]
+}

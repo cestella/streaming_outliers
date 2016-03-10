@@ -7,7 +7,7 @@
   <fileSets>
     <fileSet>
       <directory>${project.basedir}/src/main/flux</directory>
-      <outputDirectory>${project.parent.artifactId}-${project.version}/storm/topologies</outputDirectory>
+      <outputDirectory>${project.parent.artifactId}-${project.version}/topologies</outputDirectory>
       <useDefaultExcludes>true</useDefaultExcludes>
       <excludes>
         <exclude>**/*.formatted</exclude>
@@ -17,8 +17,31 @@
       <lineEnding>unix</lineEnding>
     </fileSet>
     <fileSet>
+      <directory>${project.basedir}/src/main/bash</directory>
+      <outputDirectory>${project.parent.artifactId}-${project.version}/bin</outputDirectory>
+      <useDefaultExcludes>true</useDefaultExcludes>
+      <excludes>
+        <exclude>**/*.formatted</exclude>
+        <exclude>**/*.filtered</exclude>
+      </excludes>
+      <fileMode>0755</fileMode>
+      <lineEnding>unix</lineEnding>
+    </fileSet>
+    <fileSet>
+      <directory>${project.basedir}/src/main/data</directory>
+      <outputDirectory>${project.parent.artifactId}-${project.version}/data</outputDirectory>
+      <useDefaultExcludes>true</useDefaultExcludes>
+      <excludes>
+        <exclude>**/*.formatted</exclude>
+        <exclude>**/*.filtered</exclude>
+      </excludes>
+      <fileMode>0755</fileMode>
+      <lineEnding>unix</lineEnding>
+    </fileSet>
+
+    <fileSet>
       <directory>${project.basedir}/target</directory>
-      <outputDirectory>${project.parent.artifactId}-${project.version}/storm/lib</outputDirectory>
+      <outputDirectory>${project.parent.artifactId}-${project.version}/lib</outputDirectory>
       <includes>
         <include>${project.artifactId}-${project.version}.jar</include>
       </includes>
