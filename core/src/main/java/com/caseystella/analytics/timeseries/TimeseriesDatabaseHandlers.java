@@ -42,7 +42,7 @@ public enum TimeseriesDatabaseHandlers {
         return baseMetric + STREAMING_OUTLIER_SUFFIX;
     }
     public static String getBatchOutlierMetric(String baseMetric) {
-        return baseMetric + STREAMING_OUTLIER_SUFFIX;
+        return baseMetric + REAL_OUTLIER_SUFFIX;
     }
     public static Map<String, String> getOutlierTags(final Severity outlierSeverity) {
 

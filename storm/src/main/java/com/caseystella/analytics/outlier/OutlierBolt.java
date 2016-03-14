@@ -122,17 +122,19 @@ public class OutlierBolt extends BaseRichBolt {
         }
         Outlier outlier = (Outlier) input.getValueByField(Constants.OUTLIER);
         Integer numPts = outlier.getNumPts();
-        LOG.info("Expecting " + numPts + " datapoints");
+        LOG.debug("Expecting " + numPts + " datapoints");
         DataPoint dp = outlier.getDataPoint();
         boolean gotContext = false;
         for(int numTries = 0;numTries < 10 || gotContext;numTries++) {
             List<DataPoint> context = tsdbHandler.retrieve(dp.getSource(), dp, outlier.getRange());
             gotContext = context.size() > 0.8*numPts;
             if (gotContext) {
-                LOG.info("Retrieving " + context.size() + " datapoints");
+                LOG.debug("Retrieving " + context.size() + " datapoints");
                 gotContext = true;
                 Outlier realOutlier = outlierAlgorithm.analyze(outlier, context, dp);
-                LOG.info("Calculated outlier of " + realOutlier.getSeverity() + " with input " +  getPoints(context, dp));
+                if(LOG.isDebugEnabled()) {
+                    LOG.debug("Calculated outlier of " + realOutlier.getSeverity() + " with input " + getPoints(context, dp));
+                }
                 if (realOutlier.getSeverity() == Severity.SEVERE_OUTLIER) {
                     //write out to tsdb
                     tsdbHandler.persist(TimeseriesDatabaseHandlers.getBatchOutlierMetric(dp.getSource())
