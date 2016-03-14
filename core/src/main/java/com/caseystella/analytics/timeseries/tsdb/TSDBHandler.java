@@ -23,6 +23,8 @@ import java.util.Map;
 public class TSDBHandler implements TimeseriesDatabaseHandler {
     public static final String DOWNSAMPLE_AGGREGATOR_CONFIG = "downsample_aggregator";
     public static final String DOWNSAMPLE_INTERVAL_CONFIG = "downsample_interval";
+    public static final String ZOOKEEPER_CONFIG = "zk_quorum";
+    public static final String HBASE_PATH_CONFIG = "zk_hbase_path";
     private TSDB tsdb;
     private Aggregator aggregator = null;
     private long sampleInterval;
@@ -105,20 +107,13 @@ public class TSDBHandler implements TimeseriesDatabaseHandler {
     @Override
     public void configure(Map<String, Object> config) {
         try {
-            Object tsdbConfigObj = config.get(TSConstants.HBASE_CONFIG_KEY);
-            if(tsdbConfigObj == null) {
-                tsdb = new TSDB(new TSDBConfig(HBaseConfiguration.create()));
+            Map<String, String> s = new HashMap<>();
+            for(Map.Entry<String, Object> o : config.entrySet()) {
+                if(o.getValue() instanceof String) {
+                    s.put(o.getKey(), (String) o.getValue());
+                }
             }
-            else if(tsdbConfigObj instanceof Map) {
-                Map<String, String> tsdbConfig = (Map<String, String>) tsdbConfigObj;
-                tsdb = new TSDB(new TSDBConfig(tsdbConfig == null?  new HashMap<String, String>() :tsdbConfig));
-            }
-            else if(tsdbConfigObj instanceof Configuration){
-                tsdb = new TSDB(new TSDBConfig((Configuration) tsdbConfigObj));
-            }
-            else if(tsdbConfigObj instanceof Config) {
-                tsdb = new TSDB((Config) tsdbConfigObj);
-            }
+            tsdb = new TSDB(new TSDBConfig(s));
         } catch (IOException e) {
             throw new RuntimeException("Unable to initialize TSDB connector.", e);
         }

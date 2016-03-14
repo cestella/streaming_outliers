@@ -220,8 +220,6 @@ public class Topology {
         config.registerMetricsConsumer(LoggingMetricsConsumer.class);
 
         Configuration hadoopConfig = HBaseConfiguration.create();
-        clusterConf.put(TSConstants.HBASE_CONFIG_KEY, hadoopConfig);
-        config.put(TSConstants.HBASE_CONFIG_KEY, hadoopConfig);
         String topicName = OutlierOptions.TOPIC.get(cli);
         String topologyName = "streaming_outliers_" + topicName;
         String zkConnectString = hadoopConfig.get(HConstants.ZOOKEEPER_QUORUM) + ":" + hadoopConfig.get(HConstants.ZOOKEEPER_CLIENT_PORT);
