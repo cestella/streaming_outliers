@@ -114,7 +114,7 @@ public class SketchyMovingMAD implements OutlierAlgorithm{
                 );
             }
         }
-        Outlier o = new Outlier(dp, ret, new SimpleTimeRange(valueDistribution.getCurrentDistribution()), zScore);
+        Outlier o = new Outlier(dp, ret, new SimpleTimeRange(valueDistribution.getCurrentDistribution()), zScore, (int)valueDistribution.getCurrentDistribution().getAmount());
         adjustSeverity(o);
         return o;
     }

@@ -8,12 +8,18 @@ public class Outlier {
     Severity severity;
     TimeRange range;
     Double score;
+    int numPts;
 
-    public Outlier(DataPoint dataPoint, Severity severity, TimeRange range, Double score) {
+    public Outlier(DataPoint dataPoint, Severity severity, TimeRange range, Double score, int numPts) {
         this.dataPoint = dataPoint;
         this.severity = severity;
         this.range = range;
         this.score = score;
+        this.numPts = numPts;
+    }
+
+    public int getNumPts() {
+        return numPts;
     }
 
     public Double getScore() {
