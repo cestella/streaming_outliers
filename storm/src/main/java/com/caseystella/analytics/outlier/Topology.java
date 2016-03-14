@@ -192,7 +192,7 @@ public class Topology {
             bolt = new OutlierBolt(batchOutlierConfig, persistenceConfig);
         }
         builder.setSpout(spoutId, spout, numWorkers);
-        builder.setBolt(boltId, bolt, 1).shuffleGrouping(spoutId);
+        builder.setBolt(boltId, bolt, 10).shuffleGrouping(spoutId);
         return builder;
     }
 
