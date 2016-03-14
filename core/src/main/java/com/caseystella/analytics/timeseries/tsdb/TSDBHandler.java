@@ -23,8 +23,6 @@ import java.util.Map;
 public class TSDBHandler implements TimeseriesDatabaseHandler {
     public static final String DOWNSAMPLE_AGGREGATOR_CONFIG = "downsample_aggregator";
     public static final String DOWNSAMPLE_INTERVAL_CONFIG = "downsample_interval";
-    public static final String ZOOKEEPER_CONFIG = "zk_quorum";
-    public static final String HBASE_PATH_CONFIG = "zk_hbase_path";
     private TSDB tsdb;
     private Aggregator aggregator = null;
     private long sampleInterval;
@@ -88,6 +86,9 @@ public class TSDBHandler implements TimeseriesDatabaseHandler {
                     ret.add(new DataPoint(ts, val, dp.getTags(), metric));
                 }
             }
+        }
+        if(ret.size() == 0) {
+            throw new RuntimeException("Unable to find any datapoints on " + range + " in " + metric + ": " + tags);
         }
         return ret;
     }
