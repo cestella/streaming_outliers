@@ -49,11 +49,11 @@ public class ExtractorsTest {
         DataPointExtractorConfig config = DataPointExtractorConfig.load(extractorConfig);
         DataPointExtractor extractor = new DataPointExtractor().withConfig(config);
         {
-            Iterable<DataPoint> dataPoints = extractor.extract(Bytes.toBytes(0L), Bytes.toBytes("   #0,100,foo,bar,50,7,grok,plant_1,baz"));
+            Iterable<DataPoint> dataPoints = extractor.extract(Bytes.toBytes(0L), Bytes.toBytes("   #0,100,foo,bar,50,7,grok,plant_1,baz"), true);
             Assert.assertEquals(0, Iterables.size(dataPoints));
         }
         {
-            Iterable<DataPoint> dataPoints = extractor.extract(Bytes.toBytes(0L), Bytes.toBytes("0,100,foo,bar,50,7,grok,plant_1,baz"));
+            Iterable<DataPoint> dataPoints = extractor.extract(Bytes.toBytes(0L), Bytes.toBytes("0,100,foo,bar,50,7,grok,plant_1,baz"), true);
             Assert.assertEquals(2, Iterables.size(dataPoints));
             {
                 DataPoint dp = Iterables.getFirst(dataPoints, null);
@@ -107,7 +107,7 @@ public class ExtractorsTest {
         DataPointExtractorConfig config = DataPointExtractorConfig.load(fraudExtractorConfig);
         DataPointExtractor extractor = new DataPointExtractor().withConfig(config);
         {
-            Iterable<DataPoint> dataPoints = extractor.extract(Bytes.toBytes(0L), Bytes.toBytes("\"id_1\",\"optometrist\",\"2016-02-16\",\"75.00\",\"Food\""));
+            Iterable<DataPoint> dataPoints = extractor.extract(Bytes.toBytes(0L), Bytes.toBytes("\"id_1\",\"optometrist\",\"2016-02-16\",\"75.00\",\"Food\""), true);
             Assert.assertEquals(1, Iterables.size(dataPoints));
             DataPoint dp = Iterables.get(dataPoints, 0);
             Assert.assertEquals("optometrist.Food", dp.getSource());

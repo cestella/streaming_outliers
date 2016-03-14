@@ -40,7 +40,7 @@ public class OutlierRunner {
         int numLines = 0;
         for(String line = null;(line = br.readLine()) != null;numLines++){
             if(numLines >= linesToSkip) {
-                for(DataPoint dp : extractor.extract(null, Bytes.toBytes(line))) {
+                for(DataPoint dp : extractor.extract(null, Bytes.toBytes(line), true)) {
                     Outlier o = config.getOutlierAlgorithm().analyze(dp);
                     callback.apply(new AbstractMap.SimpleEntry<>(dp, o));
                     if(reportedSeverities.contains(o.getSeverity())) {

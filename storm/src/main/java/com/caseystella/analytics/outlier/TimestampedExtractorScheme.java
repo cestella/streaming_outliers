@@ -18,7 +18,7 @@ public class TimestampedExtractorScheme implements KeyValueScheme {
     }
     @Override
     public List<Object> deserializeKeyAndValue(byte[] key, byte[] value) {
-        Iterable<DataPoint> dataPoints = extractor.extract(key, value);
+        Iterable<DataPoint> dataPoints = extractor.extract(key, value, false);
         List<Object> ret = new ArrayList<>();
         Iterables.addAll(ret, dataPoints);
         return ret;
@@ -26,7 +26,7 @@ public class TimestampedExtractorScheme implements KeyValueScheme {
 
     @Override
     public List<Object> deserialize(byte[] value) {
-        Iterable<DataPoint> dataPoints = extractor.extract(new byte[] {}, value);
+        Iterable<DataPoint> dataPoints = extractor.extract(new byte[] {}, value, false);
         List<Object> ret = new ArrayList<>();
         Iterables.addAll(ret, dataPoints);
         return ret;

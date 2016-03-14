@@ -24,7 +24,7 @@ public class DataPointExtractor implements Extractor {
     }
 
     @Override
-    public Iterable<DataPoint> extract(byte[] key, byte[] value) {
+    public Iterable<DataPoint> extract(byte[] key, byte[] value, boolean failOnMalformed) {
 
         Map<String, Object> unionMap = new HashMap<>();
         {
@@ -40,42 +40,49 @@ public class DataPointExtractor implements Extractor {
         List<DataPoint> ret = new ArrayList<>();
         if(unionMap.size() > 0) {
             for (DataPointExtractorConfig.Measurement measurement : config.getMeasurements()) {
-                DataPoint dp = new DataPoint();
-                if (measurement.getSource() != null) {
-                    dp.setSource(measurement.getSource());
-                } else {
-                    List<String> sources = new ArrayList<>();
-                    for (String sourceField : measurement.getSourceFields()) {
-                        sources.add(unionMap.get(sourceField).toString());
+                try {
+                    DataPoint dp = new DataPoint();
+                    if (measurement.getSource() != null) {
+                        dp.setSource(measurement.getSource());
+                    } else {
+                        List<String> sources = new ArrayList<>();
+                        for (String sourceField : measurement.getSourceFields()) {
+                            sources.add(unionMap.get(sourceField).toString());
+                        }
+                        dp.setSource(Joiner.on(".").join(sources));
                     }
-                    dp.setSource(Joiner.on(".").join(sources));
-                }
-                Object tsObj = unionMap.get(measurement.getTimestampField());
-                if(tsObj == null) {
-                    throw new RuntimeException("Unable to find " + measurement.getTimestampField() + " in " + unionMap);
-                }
-                dp.setTimestamp(measurement.getTimestampConverter().convert(tsObj, measurement.getTimestampConverterConfig()));
-
-                Object measurementObj = unionMap.get(measurement.getMeasurementField());
-                if(measurementObj == null) {
-                    throw new RuntimeException("Unable to find " + measurement.getMeasurementField() + " in " + unionMap);
-                }
-                dp.setValue(measurement.getMeasurementConverter().convert(measurementObj, measurement.getMeasurementConverterConfig()));
-
-                Map<String, String> metadata = new HashMap<>();
-                if (measurement.getMetadataFields() != null && measurement.getMetadataFields().size() > 0) {
-                    for (String field : measurement.getMetadataFields()) {
-                        metadata.put(field, unionMap.get(field).toString());
+                    Object tsObj = unionMap.get(measurement.getTimestampField());
+                    if (tsObj == null) {
+                        throw new RuntimeException("Unable to find " + measurement.getTimestampField() + " in " + unionMap);
                     }
-                } else {
-                    for (Map.Entry<String, Object> kv : unionMap.entrySet()) {
-                        if (!kv.getKey().equals(measurement.getMeasurementField()) && !kv.getKey().equals(measurement.getTimestampField())) {
-                            metadata.put(kv.getKey(), kv.getValue().toString());
+                    dp.setTimestamp(measurement.getTimestampConverter().convert(tsObj, measurement.getTimestampConverterConfig()));
+
+                    Object measurementObj = unionMap.get(measurement.getMeasurementField());
+                    if (measurementObj == null) {
+                        throw new RuntimeException("Unable to find " + measurement.getMeasurementField() + " in " + unionMap);
+                    }
+                    dp.setValue(measurement.getMeasurementConverter().convert(measurementObj, measurement.getMeasurementConverterConfig()));
+
+                    Map<String, String> metadata = new HashMap<>();
+                    if (measurement.getMetadataFields() != null && measurement.getMetadataFields().size() > 0) {
+                        for (String field : measurement.getMetadataFields()) {
+                            metadata.put(field, unionMap.get(field).toString());
+                        }
+                    } else {
+                        for (Map.Entry<String, Object> kv : unionMap.entrySet()) {
+                            if (!kv.getKey().equals(measurement.getMeasurementField()) && !kv.getKey().equals(measurement.getTimestampField())) {
+                                metadata.put(kv.getKey(), kv.getValue().toString());
+                            }
                         }
                     }
+                    dp.setMetadata(metadata);
+                    ret.add(dp);
                 }
-                dp.setMetadata(metadata);
-                ret.add(dp);
+                catch(RuntimeException re) {
+                    if(failOnMalformed) {
+                        throw re;
+                    }
+                }
             }
         }
         return ret;
