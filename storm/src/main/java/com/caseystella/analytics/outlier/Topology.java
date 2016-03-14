@@ -106,6 +106,16 @@ public class Topology {
                 return o;
             }
         })
+        ,ZK_QUORUM("z", new OptionHandler() {
+            @Nullable
+            @Override
+            public Option apply(@Nullable String s) {
+                Option o = new Option(s, "zkquorum", true, "Zookeeper Quorum");
+                o.setArgName("host:port[,host:port]");
+                o.setRequired(true);
+                return o;
+            }
+        })
         ;
         Option option;
         String shortCode;
@@ -175,11 +185,7 @@ public class Topology {
                                                      , "streaming_outlier"
                                                      );
             spoutConfig.maxOffsetBehind = startAtBeginning?-2:-1;
-            /*SpoutConfig spoutConfig
-                            , OutlierConfig outlierConfig
-                            , DataPointExtractorConfig extractorConfig
-                            , PersistenceConfig persistenceConfig
-                            , String zkConnectString*/
+
             spout = new OutlierKafkaSpout(spoutConfig
                                          , streamingOutlierConfig
                                          , extractorConfig
@@ -222,7 +228,7 @@ public class Topology {
         Configuration hadoopConfig = HBaseConfiguration.create();
         String topicName = OutlierOptions.TOPIC.get(cli);
         String topologyName = "streaming_outliers_" + topicName;
-        String zkConnectString = hadoopConfig.get(HConstants.ZOOKEEPER_QUORUM) + ":" + hadoopConfig.get(HConstants.ZOOKEEPER_CLIENT_PORT);
+        String zkConnectString = OutlierOptions.ZK_QUORUM.get(cli);
         /*DataPointExtractorConfig extractorConfig
                                                 , com.caseystella.analytics.outlier.streaming.OutlierConfig streamingOutlierConfig
                                                 , com.caseystella.analytics.outlier.batch.OutlierConfig batchOutlierConfig
@@ -231,7 +237,15 @@ public class Topology {
                                                 , String zkQuorum
                                                 , int numWorkers*/
         boolean startAtBeginning = OutlierOptions.FROM_BEGINNING.has(cli);
-        TopologyBuilder topology = createTopology(extractorConfig, streamingOutlierConfig, batchOutlierConfig, persistenceConfig, topicName, zkConnectString, numWorkers, startAtBeginning);
+        TopologyBuilder topology = createTopology( extractorConfig
+                                                 , streamingOutlierConfig
+                                                 , batchOutlierConfig
+                                                 , persistenceConfig
+                                                 , topicName
+                                                 , zkConnectString
+                                                 , numWorkers
+                                                 , startAtBeginning
+                                                 );
         StormSubmitter.submitTopologyWithProgressBar( topologyName, clusterConf, topology.createTopology());
         //Nimbus.Client client = NimbusClient.getConfiguredClient(clusterConf).getClient();
     }
