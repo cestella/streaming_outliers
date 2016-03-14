@@ -98,6 +98,7 @@ public class OutlierBolt extends BaseRichBolt {
                 Thread.sleep(headStart);
             } catch (InterruptedException e) {
             }
+            isFirst = false;
         }
         Outlier outlier = (Outlier) input.getValueByField(Constants.OUTLIER);
         DataPoint dp = outlier.getDataPoint();
