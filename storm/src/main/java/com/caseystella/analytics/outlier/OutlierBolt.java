@@ -14,13 +14,20 @@ import com.caseystella.analytics.timeseries.TSConstants;
 import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandler;
 import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandlers;
 import com.caseystella.analytics.timeseries.tsdb.TSDBHandler;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.log4j.Logger;
 
+import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 public class OutlierBolt extends BaseRichBolt {
+    private static final Logger LOG = Logger.getLogger(OutlierBolt.class);
     private OutlierConfig outlierConfig;
     private PersistenceConfig persistenceConfig;
     private transient OutlierAlgorithm outlierAlgorithm;
@@ -71,6 +78,19 @@ public class OutlierBolt extends BaseRichBolt {
         tsdbHandler.configure(persistenceConfig.getConfig());
     }
 
+    private static String getPoints(List<DataPoint> context, DataPoint value) {
+        Iterable<DataPoint> pts = Iterables.concat(context, Arrays.asList(value));
+        Iterable<String> vals = Iterables.transform(pts, new Function<DataPoint, String>() {
+
+            @Nullable
+            @Override
+            public String apply(@Nullable DataPoint dataPoint) {
+                return dataPoint.getValue() + "";
+            }
+        });
+        return Joiner.on(',').join(vals);
+    }
+
     /**
      * Process a single tuple of input. The Tuple object contains metadata on it
      * about which component/stream/task it came from. The values of the Tuple can
@@ -102,22 +122,39 @@ public class OutlierBolt extends BaseRichBolt {
         }
         Outlier outlier = (Outlier) input.getValueByField(Constants.OUTLIER);
         DataPoint dp = outlier.getDataPoint();
-        List<DataPoint> context = tsdbHandler.retrieve(dp.getSource(), dp, outlier.getRange());
-        if(context.size() > 0) {
-            Outlier realOutlier = outlierAlgorithm.analyze(outlier, context, dp);
-            if (realOutlier.getSeverity() == Severity.SEVERE_OUTLIER) {
-                //write out to tsdb
-                tsdbHandler.persist(TimeseriesDatabaseHandlers.getBatchOutlierMetric(dp.getSource())
-                        , dp
-                        , TimeseriesDatabaseHandlers.getOutlierTags(realOutlier.getSeverity())
-                        , TimeseriesDatabaseHandlers.EMPTY_CALLBACK
-                );
-                //emit the outlier for downstream processing if necessary.
-                collector.emit(ImmutableList.of(input.getValueByField(Constants.MEASUREMENT_ID)
-                        , realOutlier
-                        )
-                );
+        boolean gotContext = false;
+        for(int numTries = 0;numTries < 5 || gotContext;numTries++) {
+            List<DataPoint> context = tsdbHandler.retrieve(dp.getSource(), dp, outlier.getRange());
+            if (context.size() > 0) {
+                LOG.trace("Retrieving " + context.size() + " datapoints");
+                gotContext = true;
+                Outlier realOutlier = outlierAlgorithm.analyze(outlier, context, dp);
+                LOG.trace("Calculated outlier of " + realOutlier.getSeverity() + " with input " +  getPoints(context, dp));
+                if (realOutlier.getSeverity() == Severity.SEVERE_OUTLIER) {
+                    //write out to tsdb
+                    tsdbHandler.persist(TimeseriesDatabaseHandlers.getBatchOutlierMetric(dp.getSource())
+                            , dp
+                            , TimeseriesDatabaseHandlers.getOutlierTags(realOutlier.getSeverity())
+                            , TimeseriesDatabaseHandlers.EMPTY_CALLBACK
+                    );
+                    //emit the outlier for downstream processing if necessary.
+                    collector.emit(ImmutableList.of(input.getValueByField(Constants.MEASUREMENT_ID)
+                            , realOutlier
+                            )
+                    );
+                }
             }
+            else {
+                try {
+                    Thread.sleep(2000);
+                }
+                catch(InterruptedException e) {
+
+                }
+            }
+        }
+        if(gotContext == false) {
+            throw new RuntimeException("Unable to retrieve a context after 5 tries");
         }
         collector.ack(input);
     }
