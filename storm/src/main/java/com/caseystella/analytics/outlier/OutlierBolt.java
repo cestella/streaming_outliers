@@ -121,7 +121,7 @@ public class OutlierBolt extends BaseRichBolt {
             isFirst = false;
         }
         Outlier outlier = (Outlier) input.getValueByField(Constants.OUTLIER);
-        Integer numPts = (Integer)input.getValueByField(Constants.NUM_PTS);
+        Integer numPts = outlier.getNumPts();
         LOG.info("Expecting " + numPts + " datapoints");
         DataPoint dp = outlier.getDataPoint();
         boolean gotContext = false;

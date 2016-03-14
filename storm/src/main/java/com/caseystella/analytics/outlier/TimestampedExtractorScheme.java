@@ -34,6 +34,6 @@ public class TimestampedExtractorScheme implements KeyValueScheme {
 
     @Override
     public Fields getOutputFields() {
-        return new Fields(Constants.MEASUREMENT_ID, Constants.OUTLIER, Constants.NUM_PTS);
+        return new Fields(Constants.MEASUREMENT_ID, Constants.OUTLIER);
     }
 }
