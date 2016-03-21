@@ -122,16 +122,19 @@ public class OutlierBolt extends BaseRichBolt {
         }
         Outlier outlier = (Outlier) input.getValueByField(Constants.OUTLIER);
         Integer numPts = outlier.getNumPts();
+        if(numPts == 0) {
+            throw new RuntimeException("Unable to proceed.  We expect 0 points, so that's a bad state.");
+        }
         LOG.debug("Expecting " + numPts + " datapoints");
         DataPoint dp = outlier.getDataPoint();
         boolean gotContext = false;
-        for(int numTries = 0;numTries < 10 && !gotContext;numTries++) {
+        for(int numTries = 0;numTries < 30 && !gotContext;numTries++) {
             List<DataPoint> context = tsdbHandler.retrieve(dp.getSource()
                                                           , dp
                                                           , outlier.getRange()
                                                           , Outlier.groupingFilter(dp, outlierConfig.getGroupingKeys())
                                                           );
-            gotContext = context.size() > 0.8*numPts;
+            gotContext = context.size() > 0.9*numPts;
             if (gotContext) {
                 LOG.debug("Retrieving " + context.size() + " datapoints");
                 gotContext = true;

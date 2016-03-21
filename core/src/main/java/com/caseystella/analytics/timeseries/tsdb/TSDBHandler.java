@@ -95,9 +95,9 @@ public class TSDBHandler implements TimeseriesDatabaseHandler {
                 }
             }
         }
-        if(ret.size() == 0) {
+        /*if(ret.size() == 0) {
             throw new RuntimeException("Unable to find any datapoints on " + range + " in " + metric + ": " + tags);
-        }
+        }*/
         return ret;
     }
 
