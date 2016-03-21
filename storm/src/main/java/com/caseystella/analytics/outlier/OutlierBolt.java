@@ -136,7 +136,7 @@ public class OutlierBolt extends BaseRichBolt {
                 LOG.debug("Retrieving " + context.size() + " datapoints");
                 gotContext = true;
                 Outlier realOutlier = outlierAlgorithm.analyze(outlier, context, dp);
-                String metric = TimeseriesDatabaseHandlers.getBatchOutlierMetric(dp.getSource());
+                String metric = dp.getSource();
 
                 if (realOutlier.getSeverity() == Severity.SEVERE_OUTLIER) {
                     if(LOG.isDebugEnabled()) {
@@ -145,7 +145,10 @@ public class OutlierBolt extends BaseRichBolt {
                     //write out to tsdb
                     tsdbHandler.persist(metric
                             , dp
-                            , TimeseriesDatabaseHandlers.getOutlierTags(realOutlier.getSeverity())
+                            , TimeseriesDatabaseHandlers.getOutlierTags(realOutlier.getDataPoint()
+                                                                       ,realOutlier.getSeverity()
+                                                                       , TimeseriesDatabaseHandlers.OUTLIER_TYPE
+                                                                       )
                             , TimeseriesDatabaseHandlers.EMPTY_CALLBACK
                     );
                     //emit the outlier for downstream processing if necessary.

@@ -25,10 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class TSDBIntegrationTest {
 
@@ -45,8 +42,6 @@ public class TSDBIntegrationTest {
         }
         String metric = "test.metric";
         final TSDBComponent tsdb = new TSDBComponent().withMetrics( metric
-                                                                  , metric + TimeseriesDatabaseHandlers.REAL_OUTLIER_SUFFIX
-                                                                  , metric + TimeseriesDatabaseHandlers.STREAMING_OUTLIER_SUFFIX
                                                                   );
         //setLogging();
         ComponentRunner runner = new ComponentRunner.Builder()
@@ -56,7 +51,9 @@ public class TSDBIntegrationTest {
         try {
             TSDBHandler handler = new TSDBHandler();
             handler.configure(new HashMap<String, Object>() {{
-                put(TSConstants.HBASE_CONFIG_KEY, tsdb.getConfig());
+               for(Map.Entry<String, String> kv : tsdb.getConfig()) {
+                   put(kv.getKey(), kv.getValue());
+               }
             }});
 
             int i = 0;
@@ -66,16 +63,16 @@ public class TSDBIntegrationTest {
             for (DataPoint dp : points) {
                 if ( i % 7 == 0) {
                     numPtsAdded++;
-                    handler.persist(TimeseriesDatabaseHandlers.getStreamingOutlierMetric(metric)
+                    handler.persist(metric
                                    , dp
-                                   , TimeseriesDatabaseHandlers.getOutlierTags(Severity.SEVERE_OUTLIER)
+                                   , TimeseriesDatabaseHandlers.getOutlierTags(dp, Severity.SEVERE_OUTLIER, TimeseriesDatabaseHandlers.PROSPECTIVE_TYPE )
                                    , new TimingCallback(System.currentTimeMillis(), latencyStats)
                                    );
                 }
                 numPtsAdded++;
                 handler.persist(metric
                                , dp
-                               , TimeseriesDatabaseHandlers.getBasicTags(dp)
+                               , TimeseriesDatabaseHandlers.getBasicTags(dp, TimeseriesDatabaseHandlers.RAW_TYPE)
                                 , new TimingCallback(System.currentTimeMillis(), latencyStats)
                                );
                 i++;
@@ -87,10 +84,10 @@ public class TSDBIntegrationTest {
             System.out.println("Took " + latency + " ms to add 100 pts w/ a throughput of " + 100/latency + " pts/s");
             DistributionUtil.INSTANCE.summary("TSDB Latency Stats", latencyStats);
             DataPoint evaluationPoint = points.get(50);
-            handler.persist(TimeseriesDatabaseHandlers.getBatchOutlierMetric(metric)
-                                   ,evaluationPoint
-                                   , TimeseriesDatabaseHandlers.getOutlierTags(Severity.SEVERE_OUTLIER)
-                                   );
+            handler.persist(metric
+                           ,evaluationPoint
+                           , TimeseriesDatabaseHandlers.getOutlierTags(evaluationPoint, Severity.SEVERE_OUTLIER, TimeseriesDatabaseHandlers.OUTLIER_TYPE)
+                           );
             List<DataPoint> context = handler.retrieve(metric, evaluationPoint, new SimpleTimeRange(offset, offset + 50), new HashMap<String, String>());
             Assert.assertEquals(50, context.size());
             for (i = 0; i < context.size(); ++i) {

@@ -42,6 +42,7 @@ public class TSDBComponent extends HBaseComponent {
         super.start();
         String zkConnectString = getConfig().get(HConstants.ZOOKEEPER_QUORUM) + ":" + getConfig().get(HConstants.ZOOKEEPER_CLIENT_PORT);
         getConfig().set("tsd.storage.hbase.zk_quorum", zkConnectString);
+        getConfig().set("tsd.storage.hbase.zk_basedir", getConfig().get(HConstants.ZOOKEEPER_ZNODE_PARENT));
         getConfig().set("tsd.http.cachedir", "target/tsdb/cache");
         getConfig().set("tsd.http.staticroot", "target/tsdb/staticroot");
         getConfig().set("tsd.core.auto_create_metrics", "true");

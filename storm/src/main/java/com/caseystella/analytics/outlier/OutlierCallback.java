@@ -47,16 +47,19 @@ public class OutlierCallback implements Callback {
             //this guy gets persisted to TSDB
             tsdbHandler.persist(dp.getSource()
                            , dp
-                           , TimeseriesDatabaseHandlers.getBasicTags(dp)
+                           , TimeseriesDatabaseHandlers.getBasicTags(dp, TimeseriesDatabaseHandlers.RAW_TYPE)
                            , TimeseriesDatabaseHandlers.EMPTY_CALLBACK
                            );
             //now let's look for outliers
             Outlier outlier = outlierAlgorithm.analyze(dp);
             if(outlier.getSeverity() == Severity.SEVERE_OUTLIER) {
                 ret.add(ImmutableList.of(measureId, outlier));
-                tsdbHandler.persist(TimeseriesDatabaseHandlers.getStreamingOutlierMetric(dp.getSource())
+                tsdbHandler.persist(dp.getSource()
                            , dp
-                           , TimeseriesDatabaseHandlers.getOutlierTags(outlier.getSeverity())
+                           , TimeseriesDatabaseHandlers.getOutlierTags( dp
+                                                                      , outlier.getSeverity()
+                                                                      , TimeseriesDatabaseHandlers.PROSPECTIVE_TYPE
+                                                                      )
                            , TimeseriesDatabaseHandlers.EMPTY_CALLBACK
                            );
             }

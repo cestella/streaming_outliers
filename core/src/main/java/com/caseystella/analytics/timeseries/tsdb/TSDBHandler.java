@@ -59,7 +59,7 @@ public class TSDBHandler implements TimeseriesDatabaseHandler {
         q.setEndTime(pt.getTimestamp());
         Map<String, String> tags =
                 new HashMap<String, String>(filter == null?new HashMap<String, String>():filter) {{
-                            put(TimeseriesDatabaseHandlers.SERIES_TAG_KEY, TimeseriesDatabaseHandlers.SERIES_TAG_VALUE);
+                            put(TimeseriesDatabaseHandlers.TYPE_KEY, TimeseriesDatabaseHandlers.RAW_TYPE);
                         }};
         q.setTimeSeries(metric
                        , tags

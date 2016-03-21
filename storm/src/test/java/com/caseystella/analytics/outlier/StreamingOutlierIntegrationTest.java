@@ -15,6 +15,7 @@ import com.caseystella.analytics.timeseries.PersistenceConfig;
 import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandlers;
 import com.caseystella.analytics.util.JSONUtil;
 import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.adrianwalker.multilinestring.Multiline;
 import org.junit.Assert;
@@ -173,9 +174,16 @@ public class StreamingOutlierIntegrationTest {
                 List<DataPoint> outliers = new ArrayList<>();
                 @Override
                 public ReadinessState process(ComponentRunner runner) {
-                    Collection<DataPoint> points = InMemoryTimeSeriesDB.getAllPoints(TimeseriesDatabaseHandlers.getBatchOutlierMetric(KAFKA_TOPIC + ".benchmark"));
-                    if(points.size() > 0) {
-                        outliers.addAll(points);
+                    Collection<DataPoint> allPoints = InMemoryTimeSeriesDB.getAllPoints(KAFKA_TOPIC + ".benchmark");
+                    Iterable<DataPoint> outlierPoints = Iterables.filter(allPoints, new Predicate<DataPoint>() {
+                        @Override
+                        public boolean apply(@Nullable DataPoint dataPoint) {
+                            String type = dataPoint.getMetadata().get(TimeseriesDatabaseHandlers.TYPE_KEY);
+                            return type != null && type.equals(TimeseriesDatabaseHandlers.OUTLIER_TYPE);
+                        }
+                    });
+                    if(Iterables.size(outlierPoints) > 0) {
+                        Iterables.addAll(outliers, outlierPoints);
                         return ReadinessState.READY;
                     }
                     return ReadinessState.NOT_READY;

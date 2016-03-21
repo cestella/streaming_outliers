@@ -34,6 +34,14 @@ public class InMemoryTimeSeriesDB implements TimeseriesDatabaseHandler {
                 tsMap = Collections.synchronizedNavigableSet(new TreeSet<>(COMPARATOR));
                 backingStore.put(metric, tsMap);
             }
+            Map<String, String> metadata = pt.getMetadata();
+            if(metadata == null) {
+                metadata = new HashMap<>();
+            }
+            if(tags != null) {
+                metadata.putAll(tags);
+            }
+            pt.setMetadata(metadata);
             tsMap.add(pt);
         }
     }
