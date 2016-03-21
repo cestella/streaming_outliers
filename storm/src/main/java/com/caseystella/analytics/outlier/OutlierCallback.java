@@ -29,12 +29,20 @@ public class OutlierCallback implements Callback {
         this.persistenceConfig = persistenceConfig;
     }
 
+    public static String getMeasureId(String topic, String source) {
+        if(source == null || source.length() == 0) {
+            return topic;
+        }
+        else {
+            return topic + "." + source;
+        }
+    }
     @Override
     public Iterable<List<Object>> apply(List<Object> tuple, EmitContext context) {
         List<List<Object>> ret = new ArrayList<>();
         for(Object o : tuple) {
             DataPoint dp = (DataPoint)o;
-            String measureId = context.get(EmitContext.Type.TOPIC) + "." + dp.getSource();
+            String measureId = getMeasureId(context.get(EmitContext.Type.TOPIC).toString(), dp.getSource());
             dp.setSource(measureId);
             //this guy gets persisted to TSDB
             tsdbHandler.persist(dp.getSource()

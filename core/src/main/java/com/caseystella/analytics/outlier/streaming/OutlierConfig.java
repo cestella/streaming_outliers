@@ -8,6 +8,7 @@ import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandlers;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class OutlierConfig implements Serializable {
@@ -16,8 +17,16 @@ public class OutlierConfig implements Serializable {
     private GlobalStatistics globalStatistics;
     private OutlierAlgorithm outlierAlgorithm;
     private ScalingFunctions scalingFunction = null;
+    private List<String> groupingKeys;
     private Map<String, Object> config = new HashMap<>();
 
+    public List<String> getGroupingKeys() {
+        return groupingKeys;
+    }
+
+    public void setGroupingKeys(List<String> groupingKeys) {
+        this.groupingKeys = groupingKeys;
+    }
 
     public Map<String, Object> getConfig() {
         return config;

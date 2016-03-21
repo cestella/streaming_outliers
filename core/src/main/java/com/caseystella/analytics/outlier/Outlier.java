@@ -2,6 +2,12 @@ package com.caseystella.analytics.outlier;
 
 import com.caseystella.analytics.DataPoint;
 import com.caseystella.analytics.distribution.TimeRange;
+import com.google.common.base.Joiner;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Outlier {
     DataPoint dataPoint;
@@ -16,6 +22,33 @@ public class Outlier {
         this.range = range;
         this.score = score;
         this.numPts = numPts;
+    }
+
+    public static Map<String, String> groupingFilter(DataPoint dp, List<String> groupingKeys) {
+        Map<String, String> filter = new HashMap<>();
+        if(groupingKeys != null) {
+            for (String gk : groupingKeys) {
+                String k = dp.getMetadata().get(gk);
+                if (k != null) {
+                    filter.put(gk, k);
+                }
+            }
+        }
+        return filter;
+    }
+
+    public static String groupingKey(DataPoint dp, List<String> groupingKeys) {
+        List<String> keyParts = new ArrayList<>();
+        keyParts.add(dp.getSource());
+        if(groupingKeys != null) {
+            for (String gk : groupingKeys) {
+                String k = dp.getMetadata().get(gk);
+                if (k != null) {
+                    keyParts.add(k);
+                }
+            }
+        }
+        return Joiner.on('_').join(keyParts);
     }
 
     public int getNumPts() {

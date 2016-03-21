@@ -52,9 +52,10 @@ public class SketchyMovingMAD implements OutlierAlgorithm{
         if(config == null) {
             throw new RuntimeException("Outlier Algorithm is not configured yet.");
         }
-        Distribution.Context valueDistribution = getContext(dp.getSource(), valueDistributions);
-        Distribution.Context medianDistribution = getContext(dp.getSource(), medianDistributions);
-        Distribution.Context zScoreDistribution = getContext(dp.getSource(), zScoreDistributions);
+        String groupingKey = Outlier.groupingKey(dp, config.getGroupingKeys());
+        Distribution.Context valueDistribution = getContext(groupingKey, valueDistributions);
+        Distribution.Context medianDistribution = getContext(groupingKey, medianDistributions);
+        Distribution.Context zScoreDistribution = getContext(groupingKey, zScoreDistributions);
         boolean haveEnoughValues = valueDistribution.getAmount() > minAmountToPredict && Math.abs(scalePoint(dp)) > EPSILON;
         boolean haveEnoughMedians =medianDistribution.getAmount() > minAmountToPredict;
         boolean makePrediction = haveEnoughValues

@@ -91,7 +91,7 @@ public class TSDBIntegrationTest {
                                    ,evaluationPoint
                                    , TimeseriesDatabaseHandlers.getOutlierTags(Severity.SEVERE_OUTLIER)
                                    );
-            List<DataPoint> context = handler.retrieve(metric, evaluationPoint, new SimpleTimeRange(offset, offset + 50));
+            List<DataPoint> context = handler.retrieve(metric, evaluationPoint, new SimpleTimeRange(offset, offset + 50), new HashMap<String, String>());
             Assert.assertEquals(50, context.size());
             for (i = 0; i < context.size(); ++i) {
                 Assert.assertEquals(context.get(i).getTimestamp(), points.get(i).getTimestamp());

@@ -53,12 +53,12 @@ public class TSDBHandler implements TimeseriesDatabaseHandler {
     }
 
     @Override
-    public List<DataPoint> retrieve(String metric, DataPoint pt, TimeRange range) {
+    public List<DataPoint> retrieve(String metric, DataPoint pt, TimeRange range, Map<String, String> filter) {
         Query q = tsdb.newQuery();
         q.setStartTime(range.getBegin());
         q.setEndTime(pt.getTimestamp());
         Map<String, String> tags =
-                new HashMap<String, String>() {{
+                new HashMap<String, String>(filter == null?new HashMap<String, String>():filter) {{
                             put(TimeseriesDatabaseHandlers.SERIES_TAG_KEY, TimeseriesDatabaseHandlers.SERIES_TAG_VALUE);
                         }};
         q.setTimeSeries(metric
@@ -79,11 +79,13 @@ public class TSDBHandler implements TimeseriesDatabaseHandler {
             for (int i = 0; i < dp.size(); ++i) {
                 double val = dp.doubleValue(i);
                 long ts = dp.timestamp(i);
-                if (ts >= q.getEndTime()) {
+                if (ts > q.getEndTime()) {
                     break;
                 }
                 if(ts >= q.getStartTime()) {
-                    ret.add(new DataPoint(ts, val, dp.getTags(), metric));
+                    if(ts != pt.getTimestamp() && val != pt.getValue()) {
+                        ret.add(new DataPoint(ts, val, dp.getTags(), metric));
+                    }
                 }
             }
         }

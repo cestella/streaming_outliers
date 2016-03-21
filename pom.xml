@@ -45,6 +45,7 @@
   <modules>
     <module>core</module>
     <module>storm</module>
+    <module>util</module>
     <module>integration_test</module>
   </modules>
   <dependencies>

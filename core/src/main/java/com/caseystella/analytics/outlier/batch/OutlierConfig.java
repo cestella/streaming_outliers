@@ -4,13 +4,23 @@ import com.caseystella.analytics.distribution.scaling.ScalingFunctions;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class OutlierConfig implements Serializable {
     private OutlierAlgorithm algorithm;
     private ScalingFunctions scalingFunction = ScalingFunctions.NONE;
+    private List<String> groupingKeys;
     private int headStart = 30*1000;
     private Map<String, Object> config = new HashMap<>();
+
+    public List<String> getGroupingKeys() {
+        return groupingKeys;
+    }
+
+    public void setGroupingKeys(List<String> groupingKeys) {
+        this.groupingKeys = groupingKeys;
+    }
 
     public OutlierAlgorithm getAlgorithm() {
         return algorithm;

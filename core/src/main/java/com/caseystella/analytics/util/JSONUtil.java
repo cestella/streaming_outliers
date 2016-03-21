@@ -3,9 +3,7 @@ package com.caseystella.analytics.util;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.util.Map;
 
@@ -35,6 +33,10 @@ public enum JSONUtil {
             return new ObjectMapper();
         }
     };
+
+    public <T> T load(File f, Class<T> clazz) throws IOException {
+        return load(new FileInputStream(f), clazz);
+    }
 
     public <T> T load(InputStream is, Class<T> clazz) throws IOException {
         T ret = MAPPER.get().readValue(is, clazz);

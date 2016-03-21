@@ -1,6 +1,7 @@
 package com.caseystella.analytics.outlier;
 
 import com.caseystella.analytics.DataPoint;
+import com.caseystella.analytics.timeseries.inmemory.InMemoryTimeSeriesDB;
 import com.caseystella.analytics.distribution.SimpleTimeRange;
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,7 +26,7 @@ public class InMemoryTSDBTest {
             }
 
             DataPoint evalPt = points.get(50);
-            List<DataPoint> retrieved = tsdb.retrieve("test", evalPt, new SimpleTimeRange(0, 100));
+            List<DataPoint> retrieved = tsdb.retrieve("test", evalPt, new SimpleTimeRange(0, 100), new HashMap<String, String>());
             int i = 0;
             Assert.assertEquals(retrieved.size(), 50);
             for (DataPoint foundPt : retrieved) {

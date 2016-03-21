@@ -14,6 +14,8 @@ import java.util.List;
 
 public class RPCAOutlierAlgorithm implements OutlierAlgorithm{
     private static final double EPSILON = 1e-12;
+    private static final String THRESHOLD_CONF = "threshold";
+
     private final double LPENALTY_DEFAULT = 1;
     private final double SPENALTY_DEFAULT = 1.4;
     private final String LPENALTY_CONFIG = "lpenalty";
@@ -25,6 +27,7 @@ public class RPCAOutlierAlgorithm implements OutlierAlgorithm{
     private Double  spenalty;
     private Boolean isForceDiff = false;
     private int minRecords = 0;
+    private double threshold = EPSILON;
     private ScalingFunctions scaling = ScalingFunctions.NONE;
 
     public RPCAOutlierAlgorithm() {
@@ -148,7 +151,7 @@ public class RPCAOutlierAlgorithm implements OutlierAlgorithm{
             double E = outputE[nRows-1][0];
             double S = outputS[nRows-1][0];
             double L = outputL[nRows-1][0];
-            return Math.abs(S) > 0?Severity.SEVERE_OUTLIER:Severity.NORMAL;
+            return Math.abs(S) > threshold?Severity.SEVERE_OUTLIER:Severity.NORMAL;
         }
         else {
             return Severity.NOT_ENOUGH_DATA;
@@ -165,6 +168,12 @@ public class RPCAOutlierAlgorithm implements OutlierAlgorithm{
 
     @Override
     public void configure(OutlierConfig config) {
+        {
+            Object thresholdObj = config.getConfig().get(THRESHOLD_CONF);
+            if(thresholdObj != null) {
+                threshold = ConfigUtil.INSTANCE.coerceDouble(THRESHOLD_CONF, thresholdObj);
+            }
+        }
         {
             Object lPenaltyObj = config.getConfig().get(LPENALTY_CONFIG);
             if (lPenaltyObj != null) {

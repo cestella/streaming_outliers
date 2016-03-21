@@ -126,7 +126,11 @@ public class OutlierBolt extends BaseRichBolt {
         DataPoint dp = outlier.getDataPoint();
         boolean gotContext = false;
         for(int numTries = 0;numTries < 10 && !gotContext;numTries++) {
-            List<DataPoint> context = tsdbHandler.retrieve(dp.getSource(), dp, outlier.getRange());
+            List<DataPoint> context = tsdbHandler.retrieve(dp.getSource()
+                                                          , dp
+                                                          , outlier.getRange()
+                                                          , Outlier.groupingFilter(dp, outlierConfig.getGroupingKeys())
+                                                          );
             gotContext = context.size() > 0.8*numPts;
             if (gotContext) {
                 LOG.debug("Retrieving " + context.size() + " datapoints");

@@ -3,6 +3,7 @@ package com.caseystella.analytics.outlier;
 import backtype.storm.Config;
 import backtype.storm.topology.TopologyBuilder;
 import com.caseystella.analytics.DataPoint;
+import com.caseystella.analytics.timeseries.inmemory.InMemoryTimeSeriesDB;
 import com.caseystella.analytics.extractor.DataPointExtractorConfig;
 import com.caseystella.analytics.integration.ComponentRunner;
 import com.caseystella.analytics.integration.Processor;
@@ -89,7 +90,7 @@ public class StreamingOutlierIntegrationTest {
     public static String batchOutlierConfigStr;
     /**
      {
-     "databaseHandler" : "com.caseystella.analytics.outlier.InMemoryTimeSeriesDB"
+     "databaseHandler" : "com.caseystella.analytics.timeseries.inmemory.InMemoryTimeSeriesDB"
      ,"config" : {}
      }
      */
