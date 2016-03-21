@@ -66,12 +66,12 @@ public class DataPointExtractor implements Extractor {
                     Map<String, String> metadata = new HashMap<>();
                     if (measurement.getMetadataFields() != null && measurement.getMetadataFields().size() > 0) {
                         for (String field : measurement.getMetadataFields()) {
-                            metadata.put(field, unionMap.get(field).toString());
+                            metadata.put(field, unionMap.get(field).toString().replace(' ', '_'));
                         }
                     } else {
                         for (Map.Entry<String, Object> kv : unionMap.entrySet()) {
                             if (!kv.getKey().equals(measurement.getMeasurementField()) && !kv.getKey().equals(measurement.getTimestampField())) {
-                                metadata.put(kv.getKey(), kv.getValue().toString());
+                                metadata.put(kv.getKey(), kv.getValue().toString().replace(' ', '_'));
                             }
                         }
                     }
