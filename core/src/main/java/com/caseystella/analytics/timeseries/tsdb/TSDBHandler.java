@@ -55,8 +55,14 @@ public class TSDBHandler implements TimeseriesDatabaseHandler {
     @Override
     public List<DataPoint> retrieve(String metric, DataPoint pt, TimeRange range, Map<String, String> filter) {
         Query q = tsdb.newQuery();
-        q.setStartTime(range.getBegin());
-        q.setEndTime(pt.getTimestamp());
+        if(range.getBegin() == pt.getTimestamp()) {
+            q.setStartTime(range.getBegin()-1);
+            q.setEndTime(pt.getTimestamp());
+        }
+        else {
+            q.setStartTime(range.getBegin());
+            q.setEndTime(pt.getTimestamp());
+        }
         Map<String, String> tags =
                 new HashMap<String, String>(filter == null?new HashMap<String, String>():filter) {{
                             put(TimeseriesDatabaseHandlers.TYPE_KEY, TimeseriesDatabaseHandlers.RAW_TYPE);
