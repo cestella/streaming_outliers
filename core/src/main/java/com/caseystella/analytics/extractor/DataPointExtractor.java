@@ -66,12 +66,30 @@ public class DataPointExtractor implements Extractor {
                     Map<String, String> metadata = new HashMap<>();
                     if (measurement.getMetadataFields() != null && measurement.getMetadataFields().size() > 0) {
                         for (String field : measurement.getMetadataFields()) {
-                            metadata.put(field, unionMap.get(field).toString().replace(' ', '_'));
+                            metadata.put( field
+                                        , unionMap.get(field)
+                                                  .toString()
+                                                  .replace(' ', '_')
+                                                  .replace("&", "and")
+                                                  .replace(",", "")
+                                        );
+                            if(metadata.get(field).length() == 0) {
+                                metadata.remove(field);
+                            }
                         }
                     } else {
                         for (Map.Entry<String, Object> kv : unionMap.entrySet()) {
                             if (!kv.getKey().equals(measurement.getMeasurementField()) && !kv.getKey().equals(measurement.getTimestampField())) {
-                                metadata.put(kv.getKey(), kv.getValue().toString().replace(' ', '_'));
+                                metadata.put( kv.getKey()
+                                            , kv.getValue()
+                                                .toString()
+                                                .replace(' ', '_')
+                                                .replace("&", "and")
+                                                .replace(",", "")
+                                            );
+                                if(metadata.get(kv.getKey()).length() == 0) {
+                                    metadata.remove(kv.getKey());
+                                }
                             }
                         }
                     }
