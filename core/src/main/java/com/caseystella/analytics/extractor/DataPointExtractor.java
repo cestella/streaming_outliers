@@ -72,6 +72,12 @@ public class DataPointExtractor implements Extractor {
                                                   .replace(' ', '_')
                                                   .replace("&", "and")
                                                   .replace(",", "")
+                                                  .replace("(", "")
+                                                  .replace(")", "")
+                                                  .replace("[", "")
+                                                  .replace("]", "")
+                                                  .replace("{", "")
+                                                  .replace("}", "")
                                         );
                             if(metadata.get(field).length() == 0) {
                                 metadata.remove(field);
@@ -86,6 +92,12 @@ public class DataPointExtractor implements Extractor {
                                                 .replace(' ', '_')
                                                 .replace("&", "and")
                                                 .replace(",", "")
+                                                .replace("(", "")
+                                                .replace(")", "")
+                                                .replace("[", "")
+                                                .replace("]", "")
+                                                .replace("{", "")
+                                                .replace("}", "")
                                             );
                                 if(metadata.get(kv.getKey()).length() == 0) {
                                     metadata.remove(kv.getKey());
