@@ -138,11 +138,14 @@ public class OutlierBolt extends BaseRichBolt {
                                                           , numPts
                                                           );
             numGot = context.size();
-            gotContext = numGot > 0.5*numPts;
+            gotContext = numGot > 100;
             if (gotContext) {
                 LOG.debug("Retrieving " + context.size() + " datapoints");
                 gotContext = true;
+                long startTime = System.currentTimeMillis();
                 Outlier realOutlier = outlierAlgorithm.analyze(outlier, context, dp);
+                long duration = System.currentTimeMillis() - startTime;
+                LOG.trace("Outlier detection took " + duration + " ms on " + numGot + " points");
                 String metric = dp.getSource();
 
                 if (realOutlier.getSeverity() == Severity.SEVERE_OUTLIER) {
@@ -167,7 +170,7 @@ public class OutlierBolt extends BaseRichBolt {
             }
             else {
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(100);
                 }
                 catch(InterruptedException e) {
 
