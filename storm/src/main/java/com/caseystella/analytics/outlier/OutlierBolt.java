@@ -128,13 +128,15 @@ public class OutlierBolt extends BaseRichBolt {
         LOG.debug("Expecting " + numPts + " datapoints");
         DataPoint dp = outlier.getDataPoint();
         boolean gotContext = false;
-        for(int numTries = 0;numTries < 30 && !gotContext;numTries++) {
+        int numGot = 0;
+        for(int numTries = 0;numTries < 60 && !gotContext;numTries++) {
             List<DataPoint> context = tsdbHandler.retrieve(dp.getSource()
                                                           , dp
                                                           , outlier.getRange()
                                                           , Outlier.groupingFilter(dp, outlierConfig.getGroupingKeys())
                                                           );
-            gotContext = context.size() > 0.9*numPts;
+            numGot = context.size();
+            gotContext = numGot > 0.85*numPts;
             if (gotContext) {
                 LOG.debug("Retrieving " + context.size() + " datapoints");
                 gotContext = true;
@@ -171,7 +173,7 @@ public class OutlierBolt extends BaseRichBolt {
             }
         }
         if(gotContext == false) {
-            throw new RuntimeException("Unable to retrieve a context after 5 tries");
+            throw new RuntimeException(numGot + " < " + numPts + ": Unable to retrieve a context after 5 tries");
         }
         collector.ack(input);
     }
