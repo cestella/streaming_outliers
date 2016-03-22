@@ -26,7 +26,7 @@ public class InMemoryTSDBTest {
             }
 
             DataPoint evalPt = points.get(50);
-            List<DataPoint> retrieved = tsdb.retrieve("test", evalPt, new SimpleTimeRange(0, 100), new HashMap<String, String>());
+            List<DataPoint> retrieved = tsdb.retrieve("test", evalPt, new SimpleTimeRange(0, 100), new HashMap<String, String>(), -1);
             int i = 0;
             Assert.assertEquals(retrieved.size(), 50);
             for (DataPoint foundPt : retrieved) {
