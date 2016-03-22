@@ -72,10 +72,9 @@ public class TSDBHandler implements TimeseriesDatabaseHandler {
                         }};
         q.setTimeSeries(metric
                        , tags
-                       , Aggregators.ZIMSUM
+                       , Aggregators.MIMMAX
                        , false
                        );
-        q.setTimeSeries();
         if(aggregator != null && sampleInterval > 0) {
             q.downsample(sampleInterval, aggregator);
         }
