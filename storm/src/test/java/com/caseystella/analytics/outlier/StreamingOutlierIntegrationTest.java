@@ -165,6 +165,7 @@ public class StreamingOutlierIntegrationTest {
                                                               , KAFKA_TOPIC
                                                               , zkQuorum.toString()
                                                               , 1
+                                                              , 1
                                                               , true);
             Config config = new Config();
             stormComponent.submitTopology(topology,config );

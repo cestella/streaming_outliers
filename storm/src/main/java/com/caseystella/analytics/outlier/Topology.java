@@ -170,6 +170,7 @@ public class Topology {
                                                 , String kafkaTopic
                                                 , String zkQuorum
                                                 , int numWorkers
+                                                , int numSpouts
                                                 , boolean startAtBeginning
                                          )
     {
@@ -197,8 +198,8 @@ public class Topology {
         {
             bolt = new OutlierBolt(batchOutlierConfig, persistenceConfig);
         }
-        builder.setSpout(spoutId, spout, numWorkers);
-        builder.setBolt(boltId, bolt, 10).shuffleGrouping(spoutId);
+        builder.setSpout(spoutId, spout, 1);
+        builder.setBolt(boltId, bolt, numWorkers).shuffleGrouping(spoutId);
         return builder;
     }
 
@@ -216,7 +217,8 @@ public class Topology {
         PersistenceConfig persistenceConfig = JSONUtil.INSTANCE.load(new FileInputStream(new File(OutlierOptions.TIMESERIES_DB_CONFIG.get(cli)))
                                                                          , PersistenceConfig.class
                                                                          );
-        int numWorkers = 6;
+        int numSpouts = 1;
+        int numWorkers = 10;
         if(OutlierOptions.NUM_WORKERS.has(cli)) {
             numWorkers = Integer.parseInt(OutlierOptions.NUM_WORKERS.get(cli));
         }
@@ -244,6 +246,7 @@ public class Topology {
                                                  , topicName
                                                  , zkConnectString
                                                  , numWorkers
+                                                 , numSpouts
                                                  , startAtBeginning
                                                  );
         StormSubmitter.submitTopologyWithProgressBar( topologyName, clusterConf, topology.createTopology());
