@@ -85,10 +85,7 @@ public class TSDBHandler implements TimeseriesDatabaseHandler {
             for (int i = 0; i < dp.size(); ++i) {
                 double val = dp.doubleValue(i);
                 long ts = dp.timestamp(i);
-                if (ts > q.getEndTime()) {
-                    break;
-                }
-                if(ts >= q.getStartTime()) {
+                if(ts <= q.getEndTime() && ts >= q.getStartTime()) {
                     if(ts != pt.getTimestamp() && val != pt.getValue()) {
                         ret.add(new DataPoint(ts, val, dp.getTags(), metric));
                     }
