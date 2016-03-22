@@ -93,7 +93,17 @@ public class Topology {
             public Option apply(@Nullable String s) {
                 Option o = new Option(s, "num_workers", true, "Number of workers");
                 o.setArgName("N");
-                o.setRequired(true);
+                o.setRequired(false);
+                return o;
+            }
+        })
+        ,NUM_SPOUTS("s", new OptionHandler() {
+            @Nullable
+            @Override
+            public Option apply(@Nullable String s) {
+                Option o = new Option(s, "num_spouts", true, "Number of spouts");
+                o.setArgName("N");
+                o.setRequired(false);
                 return o;
             }
         })
@@ -221,6 +231,9 @@ public class Topology {
         int numWorkers = 10;
         if(OutlierOptions.NUM_WORKERS.has(cli)) {
             numWorkers = Integer.parseInt(OutlierOptions.NUM_WORKERS.get(cli));
+        }
+        if(OutlierOptions.NUM_SPOUTS.has(cli)) {
+            numSpouts = Integer.parseInt(OutlierOptions.NUM_SPOUTS.get(cli));
         }
         Map clusterConf = Utils.readStormConfig();
         Config config = new Config();
