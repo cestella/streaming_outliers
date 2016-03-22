@@ -138,7 +138,7 @@ public class OutlierBolt extends BaseRichBolt {
                                                           , numPts
                                                           );
             numGot = context.size();
-            gotContext = numGot > 100;
+            gotContext = numGot > Math.min(0.5*numPts, 100);
             if (gotContext) {
                 LOG.debug("Retrieving " + context.size() + " datapoints");
                 gotContext = true;
