@@ -167,7 +167,7 @@ public class OutlierBolt extends BaseRichBolt {
             }
             else {
                 try {
-                    Thread.sleep(2000);
+                    Thread.sleep(500);
                 }
                 catch(InterruptedException e) {
 
@@ -176,7 +176,8 @@ public class OutlierBolt extends BaseRichBolt {
         }
         if(gotContext == false) {
             String reason = numGot + "<" + numPts + " with range: " + outlier.getRange() + " and grouping: " +  Joiner.on(",").join(Outlier.groupingFilter(dp, outlierConfig.getGroupingKeys(), persistenceConfig.getTags()).entrySet());
-            throw new RuntimeException(reason + ": Unable to retrieve a context after " + numTries + " tries");
+            reason += ": Unable to retrieve a context after " + numTries + " tries";
+            LOG.error(reason);
         }
         collector.ack(input);
     }
