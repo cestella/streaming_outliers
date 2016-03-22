@@ -174,7 +174,8 @@ public class OutlierBolt extends BaseRichBolt {
             }
         }
         if(gotContext == false) {
-            throw new RuntimeException(numGot + " < " + numPts + ": Unable to retrieve a context after " + numTries + " tries");
+            String reason = numGot + "<" + numPts + " with range: " + outlier.getRange() + " and grouping: " +  Joiner.on(",").join(Outlier.groupingFilter(dp, outlierConfig.getGroupingKeys()).entrySet());
+            throw new RuntimeException(reason + ": Unable to retrieve a context after " + numTries + " tries");
         }
         collector.ack(input);
     }

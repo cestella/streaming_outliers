@@ -7,6 +7,7 @@ import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandler;
 import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandlers;
 import com.caseystella.analytics.util.ConfigUtil;
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
 import com.stumbleupon.async.Callback;
 import com.stumbleupon.async.Deferred;
 import net.opentsdb.core.*;
@@ -82,12 +83,13 @@ public class TSDBHandler implements TimeseriesDatabaseHandler {
             throw new RuntimeException("Unable to retrieve points (empty set)");
         }
         List<DataPoint> ret = new ArrayList<>();
+        int total =0;
         for(int j = 0;j < datapoints.length;++j) {
             DataPoints dp = datapoints[j];
             if(LOG.isDebugEnabled() && dp.size() == 0) {
                LOG.debug("Returned 0 sized query.");
             }
-            for (int i = 0; i < dp.size(); ++i) {
+            for (int i = 0; i < dp.size(); ++i,++total) {
                 double val = dp.doubleValue(i);
                 long ts = dp.timestamp(i);
                 if(ts <= end && ts >= start) {
@@ -96,6 +98,11 @@ public class TSDBHandler implements TimeseriesDatabaseHandler {
                     }
                 }
             }
+        }
+        {
+            String reason = " with range: (" + start + "," + end + ") and grouping: "
+                          + Joiner.on(",").join(filter.entrySet());
+            LOG.info("Found " + total + " and returned " + ret.size() + reason);
         }
         /*if(ret.size() == 0) {
             throw new RuntimeException("Unable to find any datapoints on " + range + " in " + metric + ": " + tags);
