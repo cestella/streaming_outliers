@@ -97,7 +97,7 @@ public class Topology {
                 return o;
             }
         })
-        ,NUM_SPOUTS("s", new OptionHandler() {
+        ,NUM_SPOUTS("x", new OptionHandler() {
             @Nullable
             @Override
             public Option apply(@Nullable String s) {
