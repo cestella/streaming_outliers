@@ -24,13 +24,20 @@ public class Outlier {
         this.numPts = numPts;
     }
 
-    public static Map<String, String> groupingFilter(DataPoint dp, List<String> groupingKeys) {
+    public static Map<String, String> groupingFilter(DataPoint dp, List<String> groupingKeys, List<String> allTags) {
         Map<String, String> filter = new HashMap<>();
         if(groupingKeys != null) {
             for (String gk : groupingKeys) {
                 String k = dp.getMetadata().get(gk);
                 if (k != null) {
                     filter.put(gk, k);
+                }
+            }
+        }
+        if(allTags != null) {
+            for(String tag : allTags) {
+                if(!filter.containsKey(tag)) {
+                    filter.put(tag, "*");
                 }
             }
         }

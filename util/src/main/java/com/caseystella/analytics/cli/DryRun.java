@@ -11,6 +11,7 @@ import com.caseystella.analytics.timeseries.inmemory.InMemoryTimeSeriesDB;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -57,7 +58,7 @@ public class DryRun {
                 Outlier outlier = madAlgo.analyze(dp);
                 if(outlier.getSeverity() == Severity.SEVERE_OUTLIER) {
                     sketchyOut.println(pt);
-                    List<DataPoint> points = tsdb.retrieve("metric", dp, outlier.getRange(), Outlier.groupingFilter(dp, batchOutlierConfig.getGroupingKeys()));
+                    List<DataPoint> points = tsdb.retrieve("metric", dp, outlier.getRange(), Outlier.groupingFilter(dp, batchOutlierConfig.getGroupingKeys(), new ArrayList<String>()));
                     if(points.size() == 0) {
                         throw new RuntimeException("Something borked: " + dp);
                     }
