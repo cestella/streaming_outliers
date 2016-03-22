@@ -142,6 +142,7 @@ public class TSDBHandler implements TimeseriesDatabaseHandler {
                 }
             }
             tsdb = new TSDB(new TSDBConfig(s));
+            tsdb.getConfig().setFixDuplicates(true);
         } catch (IOException e) {
             throw new RuntimeException("Unable to initialize TSDB connector.", e);
         }
