@@ -58,7 +58,7 @@ public class DryRun {
                 Outlier outlier = madAlgo.analyze(dp);
                 if(outlier.getSeverity() == Severity.SEVERE_OUTLIER) {
                     sketchyOut.println(pt);
-                    List<DataPoint> points = tsdb.retrieve("metric", dp, outlier.getRange(), Outlier.groupingFilter(dp, batchOutlierConfig.getGroupingKeys(), new ArrayList<String>()));
+                    List<DataPoint> points = tsdb.retrieve("metric", dp, outlier.getRange(), Outlier.groupingFilter(dp, batchOutlierConfig.getGroupingKeys(), new ArrayList<String>()), -1);
                     if(points.size() == 0) {
                         throw new RuntimeException("Something borked: " + dp);
                     }

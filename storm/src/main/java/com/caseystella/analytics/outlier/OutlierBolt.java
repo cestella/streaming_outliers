@@ -135,6 +135,7 @@ public class OutlierBolt extends BaseRichBolt {
                                                           , dp
                                                           , outlier.getRange()
                                                           , Outlier.groupingFilter(dp, outlierConfig.getGroupingKeys(), persistenceConfig.getTags())
+                                                          , numPts
                                                           );
             numGot = context.size();
             gotContext = numGot > 0.85*numPts;

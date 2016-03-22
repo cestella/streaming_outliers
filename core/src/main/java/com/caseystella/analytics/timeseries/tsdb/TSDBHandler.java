@@ -57,7 +57,13 @@ public class TSDBHandler implements TimeseriesDatabaseHandler {
     }
 
     @Override
-    public List<DataPoint> retrieve(String metric, DataPoint pt, TimeRange range, Map<String, String> filter) {
+    public List<DataPoint> retrieve(String metric
+                                   , DataPoint pt
+                                   , TimeRange range
+                                   , Map<String, String> filter
+                                   , int maxPts
+                                   )
+    {
         Query q = tsdb.newQuery();
         long start = range.getBegin();
         long end = pt.getTimestamp();
@@ -92,7 +98,10 @@ public class TSDBHandler implements TimeseriesDatabaseHandler {
             for (int i = 0; i < dp.size(); ++i,++total) {
                 double val = dp.doubleValue(i);
                 long ts = dp.timestamp(i);
-                if(ts <= end && ts >= start) {
+                if(ts > end || (maxPts > 0 && ret.size() >= maxPts)) {
+                    break;
+                }
+                if(ts >= start) {
                     if(ts != pt.getTimestamp() || val != pt.getValue()) {
                         ret.add(new DataPoint(ts, val, dp.getTags(), metric));
                     }

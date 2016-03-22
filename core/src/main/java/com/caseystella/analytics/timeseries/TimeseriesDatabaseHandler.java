@@ -10,6 +10,6 @@ import java.util.Map;
 
 public interface TimeseriesDatabaseHandler extends Serializable {
     void persist(String metric, DataPoint pt, Map<String, String> tags, Function<Object, Void> callback);
-    List<DataPoint> retrieve(String metric, DataPoint pt, TimeRange range, Map<String, String> filter);
+    List<DataPoint> retrieve(String metric, DataPoint pt, TimeRange range, Map<String, String> filter, int maxPts);
     void configure(Map<String, Object> config);
 }

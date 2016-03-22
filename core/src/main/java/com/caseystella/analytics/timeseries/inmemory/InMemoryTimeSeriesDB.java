@@ -70,7 +70,7 @@ public class InMemoryTimeSeriesDB implements TimeseriesDatabaseHandler {
         return true;
     }
     @Override
-    public List<DataPoint> retrieve(String metric, DataPoint pt, TimeRange range, Map<String, String> filter) {
+    public List<DataPoint> retrieve(String metric, DataPoint pt, TimeRange range, Map<String, String> filter, int maxPts) {
         synchronized(_sync) {
             NavigableSet<DataPoint> tsMap = backingStore.get(metric);
             List<DataPoint> ret = new ArrayList<>();
