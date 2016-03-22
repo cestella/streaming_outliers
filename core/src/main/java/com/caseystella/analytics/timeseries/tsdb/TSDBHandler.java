@@ -72,9 +72,10 @@ public class TSDBHandler implements TimeseriesDatabaseHandler {
                         }};
         q.setTimeSeries(metric
                        , tags
-                       , Aggregators.AVG
+                       , Aggregators.ZIMSUM
                        , false
                        );
+        q.setTimeSeries();
         if(aggregator != null && sampleInterval > 0) {
             q.downsample(sampleInterval, aggregator);
         }
@@ -101,7 +102,7 @@ public class TSDBHandler implements TimeseriesDatabaseHandler {
         }
         {
             String reason = " with range: (" + start + "," + end + ") and grouping: "
-                          + Joiner.on(",").join(filter.entrySet());
+                          + Joiner.on(",").join(tags.entrySet());
             LOG.info("Found " + total + " and returned " + ret.size() + reason);
         }
         /*if(ret.size() == 0) {
