@@ -129,7 +129,8 @@ public class OutlierBolt extends BaseRichBolt {
         DataPoint dp = outlier.getDataPoint();
         boolean gotContext = false;
         int numGot = 0;
-        for(int numTries = 0;numTries < 60 && !gotContext;numTries++) {
+        int numTries = 0;
+        for(;numTries < 60 && !gotContext;numTries++) {
             List<DataPoint> context = tsdbHandler.retrieve(dp.getSource()
                                                           , dp
                                                           , outlier.getRange()
@@ -173,7 +174,7 @@ public class OutlierBolt extends BaseRichBolt {
             }
         }
         if(gotContext == false) {
-            throw new RuntimeException(numGot + " < " + numPts + ": Unable to retrieve a context after 5 tries");
+            throw new RuntimeException(numGot + " < " + numPts + ": Unable to retrieve a context after " + numTries + " tries");
         }
         collector.ack(input);
     }

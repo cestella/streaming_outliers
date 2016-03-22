@@ -13,6 +13,8 @@ import net.opentsdb.core.*;
 import net.opentsdb.utils.Config;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 public class TSDBHandler implements TimeseriesDatabaseHandler {
+    protected static final Logger LOG = LoggerFactory.getLogger(TSDBHandler.class);
     public static final String DOWNSAMPLE_AGGREGATOR_CONFIG = "downsample_aggregator";
     public static final String DOWNSAMPLE_INTERVAL_CONFIG = "downsample_interval";
     private TSDB tsdb;
@@ -55,14 +58,13 @@ public class TSDBHandler implements TimeseriesDatabaseHandler {
     @Override
     public List<DataPoint> retrieve(String metric, DataPoint pt, TimeRange range, Map<String, String> filter) {
         Query q = tsdb.newQuery();
+        long start = range.getBegin();
+        long end = pt.getTimestamp();
         if(range.getBegin() == pt.getTimestamp()) {
-            q.setStartTime(range.getBegin()-1);
-            q.setEndTime(pt.getTimestamp());
+            start = range.getBegin()-1;
         }
-        else {
-            q.setStartTime(range.getBegin());
-            q.setEndTime(pt.getTimestamp());
-        }
+        q.setStartTime(start);
+        q.setEndTime(end);
         Map<String, String> tags =
                 new HashMap<String, String>(filter == null?new HashMap<String, String>():filter) {{
                             put(TimeseriesDatabaseHandlers.TYPE_KEY, TimeseriesDatabaseHandlers.RAW_TYPE);
@@ -82,11 +84,14 @@ public class TSDBHandler implements TimeseriesDatabaseHandler {
         List<DataPoint> ret = new ArrayList<>();
         for(int j = 0;j < datapoints.length;++j) {
             DataPoints dp = datapoints[j];
+            if(LOG.isDebugEnabled() && dp.size() == 0) {
+               LOG.debug("Returned 0 sized query.");
+            }
             for (int i = 0; i < dp.size(); ++i) {
                 double val = dp.doubleValue(i);
                 long ts = dp.timestamp(i);
-                if(ts <= q.getEndTime() && ts >= q.getStartTime()) {
-                    if(ts != pt.getTimestamp() && val != pt.getValue()) {
+                if(ts <= end && ts >= start) {
+                    if(ts != pt.getTimestamp() || val != pt.getValue()) {
                         ret.add(new DataPoint(ts, val, dp.getTags(), metric));
                     }
                 }
