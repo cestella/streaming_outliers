@@ -135,6 +135,7 @@ public class TSDBHandler implements TimeseriesDatabaseHandler {
     public void configure(Map<String, Object> config) {
         try {
             Map<String, String> s = new HashMap<>();
+            s.put("tsd.storage.fix_duplicates", "true");
             for(Map.Entry<String, Object> o : config.entrySet()) {
                 if(o.getValue() instanceof String) {
                     s.put(o.getKey(), (String) o.getValue());
