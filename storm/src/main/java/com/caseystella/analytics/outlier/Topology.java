@@ -180,7 +180,9 @@ public class Topology {
                                                      , "/kafka"
                                                      , "streaming_outlier"
                                                      );
-            spoutConfig.maxOffsetBehind = startAtBeginning?-2:-1;
+            spoutConfig.startOffsetTime = startAtBeginning?kafka.api.OffsetRequest.EarliestTime()
+                                                          :kafka.api.OffsetRequest.LatestTime()
+                                                          ;
 
             spout = new OutlierKafkaSpout(spoutConfig
                                          , extractorConfig
