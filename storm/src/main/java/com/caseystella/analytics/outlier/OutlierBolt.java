@@ -16,6 +16,7 @@ import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandlers;
 import java.util.Map;
 
 public class OutlierBolt implements IRichBolt {
+    OutputCollector _collector;
     OutlierConfig outlierConfig;
     OutlierAlgorithm sketchyOutlierAlgorithm;
     com.caseystella.analytics.outlier.batch.OutlierAlgorithm batchOutlierAlgorithm;
@@ -49,6 +50,7 @@ public class OutlierBolt implements IRichBolt {
      */
     @Override
     public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
+        _collector = collector;
         sketchyOutlierAlgorithm = outlierConfig.getSketchyOutlierAlgorithm();
         sketchyOutlierAlgorithm.configure(outlierConfig);
         batchOutlierAlgorithm = outlierConfig.getBatchOutlierAlgorithm();
@@ -101,6 +103,7 @@ public class OutlierBolt implements IRichBolt {
             }
 
         }
+        _collector.ack(input);
 
     }
 
