@@ -183,7 +183,9 @@ public class Topology {
             spoutConfig.startOffsetTime = startAtBeginning?kafka.api.OffsetRequest.EarliestTime()
                                                           :kafka.api.OffsetRequest.LatestTime()
                                                           ;
-
+            if(startAtBeginning) {
+                spoutConfig.ignoreZkOffsets = true;
+            }
             spout = new OutlierKafkaSpout(spoutConfig
                                          , extractorConfig
                                          , streamingOutlierConfig.getGroupingKeys()
