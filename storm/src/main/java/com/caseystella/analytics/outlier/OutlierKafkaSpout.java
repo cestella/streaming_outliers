@@ -5,27 +5,22 @@ import com.caseystella.analytics.outlier.streaming.OutlierConfig;
 import com.caseystella.analytics.timeseries.PersistenceConfig;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import storm.kafka.Callback;
-import storm.kafka.CallbackKafkaSpout;
-import storm.kafka.KeyValueSchemeAsMultiScheme;
-import storm.kafka.SpoutConfig;
+import storm.kafka.*;
 
 import java.util.ArrayList;
+import java.util.List;
 
-public class OutlierKafkaSpout extends CallbackKafkaSpout {
+public class OutlierKafkaSpout extends KafkaSpout{
     private OutlierConfig outlierConfig;
     private PersistenceConfig persistenceConfig;
     public OutlierKafkaSpout( SpoutConfig spoutConfig
-                            , OutlierConfig outlierConfig
                             , DataPointExtractorConfig extractorConfig
-                            , PersistenceConfig persistenceConfig
+                            , List<String> groupingKeys
                             , String zkConnectString
                             )
     {
-        super(spoutConfig, OutlierCallback.class);
-        this.persistenceConfig = persistenceConfig;
-        this.outlierConfig = outlierConfig;
-        spoutConfig.scheme = new KeyValueSchemeAsMultiScheme(new TimestampedExtractorScheme(extractorConfig));
+        super(spoutConfig);
+        spoutConfig.scheme = new TimestampedExtractorScheme(extractorConfig, groupingKeys);
         if(zkConnectString != null && zkConnectString.length() > 0) {
             boolean isFirst = true;
             for (String hostPort : Splitter.on(',').split(zkConnectString)) {
@@ -43,10 +38,4 @@ public class OutlierKafkaSpout extends CallbackKafkaSpout {
         }
     }
 
-
-
-    @Override
-    protected Callback createCallback(Class<? extends Callback> callbackClass) {
-        return new OutlierCallback(outlierConfig, persistenceConfig);
-    }
 }

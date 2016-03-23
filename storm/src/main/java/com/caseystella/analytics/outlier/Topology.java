@@ -4,6 +4,7 @@ import backtype.storm.Config;
 import backtype.storm.StormSubmitter;
 import backtype.storm.metric.LoggingMetricsConsumer;
 import backtype.storm.topology.TopologyBuilder;
+import backtype.storm.tuple.Fields;
 import backtype.storm.utils.Utils;
 import com.caseystella.analytics.extractor.DataPointExtractorConfig;
 import com.caseystella.analytics.timeseries.PersistenceConfig;
@@ -52,6 +53,16 @@ public class Topology {
                 return o;
             }
         })
+        ,BATCH_OUTLIER_CONFIG("o", new OptionHandler() {
+            @Nullable
+            @Override
+            public Option apply(@Nullable String s) {
+                Option o = new Option(s, "outlier_config", true, "JSON Document describing the config for the real outlier detector");
+                o.setArgName("JSON_FILE");
+                o.setRequired(true);
+                return o;
+            }
+        })
         ,TIMESERIES_DB_CONFIG("d", new OptionHandler() {
             @Nullable
             @Override
@@ -72,7 +83,17 @@ public class Topology {
                 return o;
             }
         })
-        ,NUM_SPOUTS("x", new OptionHandler() {
+        ,NUM_WORKERS("n", new OptionHandler() {
+            @Nullable
+            @Override
+            public Option apply(@Nullable String s) {
+                Option o = new Option(s, "num_workers", true, "Number of workers");
+                o.setArgName("N");
+                o.setRequired(false);
+                return o;
+            }
+        })
+        ,NUM_SPOUTS("s", new OptionHandler() {
             @Nullable
             @Override
             public Option apply(@Nullable String s) {
@@ -172,18 +193,17 @@ public class Topology {
             spoutConfig.maxOffsetBehind = startAtBeginning?-2:-1;
 
             spout = new OutlierKafkaSpout(spoutConfig
-                                         , streamingOutlierConfig
                                          , extractorConfig
-                                         , persistenceConfig
+                                         , streamingOutlierConfig.getGroupingKeys()
                                          , zkQuorum
                                          );
         }
-        /*OutlierBolt bolt = null;
+        OutlierBolt bolt = null;
         {
-            bolt = new OutlierBolt(batchOutlierConfig, persistenceConfig);
-        }*/
+            bolt = new OutlierBolt(kafkaTopic, streamingOutlierConfig, persistenceConfig);
+        }
         builder.setSpout(spoutId, spout, numSpouts);
-        //builder.setBolt(boltId, bolt, numWorkers).shuffleGrouping(spoutId);
+        builder.setBolt(boltId, bolt, numWorkers).fieldsGrouping(spoutId, new Fields(Constants.GROUP_ID));
         return builder;
     }
 
@@ -201,7 +221,9 @@ public class Topology {
                                                                          );
         int numSpouts = 1;
         int numWorkers = 10;
-
+        if(OutlierOptions.NUM_WORKERS.has(cli)) {
+            numWorkers = Integer.parseInt(OutlierOptions.NUM_WORKERS.get(cli));
+        }
         if(OutlierOptions.NUM_SPOUTS.has(cli)) {
             numSpouts = Integer.parseInt(OutlierOptions.NUM_SPOUTS.get(cli));
         }
