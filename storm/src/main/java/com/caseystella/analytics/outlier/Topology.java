@@ -53,16 +53,6 @@ public class Topology {
                 return o;
             }
         })
-        ,BATCH_OUTLIER_CONFIG("o", new OptionHandler() {
-            @Nullable
-            @Override
-            public Option apply(@Nullable String s) {
-                Option o = new Option(s, "outlier_config", true, "JSON Document describing the config for the real outlier detector");
-                o.setArgName("JSON_FILE");
-                o.setRequired(true);
-                return o;
-            }
-        })
         ,TIMESERIES_DB_CONFIG("d", new OptionHandler() {
             @Nullable
             @Override
@@ -93,7 +83,7 @@ public class Topology {
                 return o;
             }
         })
-        ,NUM_SPOUTS("s", new OptionHandler() {
+        ,NUM_SPOUTS("x", new OptionHandler() {
             @Nullable
             @Override
             public Option apply(@Nullable String s) {
