@@ -45,7 +45,7 @@ public class RotationTest {
         OutlierConfig config = JSONUtil.INSTANCE.load(amountConfig, OutlierConfig.class);
         final IntWritable numChunksAdded = new IntWritable(0);
         final IntWritable numRotations= new IntWritable(0);
-        Distribution.Context context = new Distribution.Context() {
+        Distribution.Context context = new Distribution.Context(0, 0) {
             @Override
             protected void addChunk(Distribution d) {
                 super.addChunk(d);

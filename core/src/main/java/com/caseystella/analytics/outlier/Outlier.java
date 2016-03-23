@@ -15,6 +15,7 @@ public class Outlier {
     TimeRange range;
     Double score;
     int numPts;
+    List<DataPoint> sample;
 
     public Outlier(DataPoint dataPoint, Severity severity, TimeRange range, Double score, int numPts) {
         this.dataPoint = dataPoint;
@@ -22,6 +23,7 @@ public class Outlier {
         this.range = range;
         this.score = score;
         this.numPts = numPts;
+        this.sample = sample;
     }
 
     public static Map<String, String> groupingFilter(DataPoint dp, List<String> groupingKeys, List<String> allTags) {
@@ -56,6 +58,14 @@ public class Outlier {
             }
         }
         return Joiner.on('_').join(keyParts);
+    }
+
+    public List<DataPoint> getSample() {
+        return sample;
+    }
+
+    public void setSample(List<DataPoint> sample) {
+        this.sample = sample;
     }
 
     public int getNumPts() {
@@ -111,11 +121,13 @@ public class Outlier {
 
         Outlier outlier = (Outlier) o;
 
+        if (getNumPts() != outlier.getNumPts()) return false;
         if (getDataPoint() != null ? !getDataPoint().equals(outlier.getDataPoint()) : outlier.getDataPoint() != null)
             return false;
         if (getSeverity() != outlier.getSeverity()) return false;
         if (getRange() != null ? !getRange().equals(outlier.getRange()) : outlier.getRange() != null) return false;
-        return getScore() != null ? getScore().equals(outlier.getScore()) : outlier.getScore() == null;
+        if (getScore() != null ? !getScore().equals(outlier.getScore()) : outlier.getScore() != null) return false;
+        return getSample() != null ? getSample().equals(outlier.getSample()) : outlier.getSample() == null;
 
     }
 
@@ -125,6 +137,8 @@ public class Outlier {
         result = 31 * result + (getSeverity() != null ? getSeverity().hashCode() : 0);
         result = 31 * result + (getRange() != null ? getRange().hashCode() : 0);
         result = 31 * result + (getScore() != null ? getScore().hashCode() : 0);
+        result = 31 * result + getNumPts();
+        result = 31 * result + (getSample() != null ? getSample().hashCode() : 0);
         return result;
     }
 }

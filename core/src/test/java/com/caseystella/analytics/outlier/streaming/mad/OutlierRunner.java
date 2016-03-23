@@ -22,7 +22,7 @@ public class OutlierRunner {
     public OutlierRunner(String outlierConfig, String extractorConfig) throws IOException {
         {
             config = JSONUtil.INSTANCE.load(outlierConfig, OutlierConfig.class);
-            config.getOutlierAlgorithm().configure(config);
+            config.getSketchyOutlierAlgorithm().configure(config);
         }
         {
             DataPointExtractorConfig config = JSONUtil.INSTANCE.load(extractorConfig, DataPointExtractorConfig.class);
@@ -31,7 +31,7 @@ public class OutlierRunner {
     }
 
     public double getMean() {
-        return ((SketchyMovingMAD)config.getOutlierAlgorithm()).getValueDistributions().get("benchmark").getCurrentDistribution().getMean();
+        return ((SketchyMovingMAD)config.getSketchyOutlierAlgorithm()).getValueDistributions().get("benchmark").getCurrentDistribution().getMean();
     }
 
     public List<Outlier> run(File csv, int linesToSkip, final EnumSet<Severity> reportedSeverities, Function<Map.Entry<DataPoint, Outlier>, Void> callback) throws IOException {
@@ -41,7 +41,7 @@ public class OutlierRunner {
         for(String line = null;(line = br.readLine()) != null;numLines++){
             if(numLines >= linesToSkip) {
                 for(DataPoint dp : extractor.extract(null, Bytes.toBytes(line), true)) {
-                    Outlier o = config.getOutlierAlgorithm().analyze(dp);
+                    Outlier o = config.getSketchyOutlierAlgorithm().analyze(dp);
                     callback.apply(new AbstractMap.SimpleEntry<>(dp, o));
                     if(reportedSeverities.contains(o.getSeverity())) {
                         ret.add(o);

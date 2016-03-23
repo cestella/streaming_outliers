@@ -7,7 +7,6 @@ import com.caseystella.analytics.timeseries.PersistenceConfig;
 import com.caseystella.analytics.timeseries.TSConstants;
 import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandler;
 import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandlers;
-import com.caseystella.analytics.timeseries.tsdb.TSDBHandler;
 import com.google.common.collect.ImmutableList;
 import org.apache.hadoop.conf.Configuration;
 import storm.kafka.Callback;
@@ -20,7 +19,8 @@ import java.util.Map;
 
 public class OutlierCallback implements Callback {
     OutlierConfig outlierConfig;
-    OutlierAlgorithm outlierAlgorithm;
+    OutlierAlgorithm sketchyOutlierAlgorithm;
+    com.caseystella.analytics.outlier.batch.OutlierAlgorithm batchOutlierAlgorithm;
     TimeseriesDatabaseHandler tsdbHandler;
     PersistenceConfig persistenceConfig;
 
@@ -51,17 +51,21 @@ public class OutlierCallback implements Callback {
                            , TimeseriesDatabaseHandlers.EMPTY_CALLBACK
                            );
             //now let's look for outliers
-            Outlier outlier = outlierAlgorithm.analyze(dp);
+            Outlier outlier = sketchyOutlierAlgorithm.analyze(dp);
             if(outlier.getSeverity() == Severity.SEVERE_OUTLIER) {
-                ret.add(ImmutableList.of(measureId, outlier));
-                tsdbHandler.persist(dp.getSource()
-                           , dp
-                           , TimeseriesDatabaseHandlers.getOutlierTags( dp
-                                                                      , outlier.getSeverity()
-                                                                      , TimeseriesDatabaseHandlers.PROSPECTIVE_TYPE
-                                                                      )
-                           , TimeseriesDatabaseHandlers.EMPTY_CALLBACK
-                           );
+                outlier = batchOutlierAlgorithm.analyze(outlier, outlier.getSample(), dp);
+                if(outlier.getSeverity() == Severity.SEVERE_OUTLIER) {
+                    ret.add(ImmutableList.of(measureId, outlier));
+                    tsdbHandler.persist(dp.getSource()
+                            , dp
+                            , TimeseriesDatabaseHandlers.getOutlierTags(dp
+                                    , outlier.getSeverity()
+                                    , TimeseriesDatabaseHandlers.OUTLIER_TYPE
+                            )
+                            , TimeseriesDatabaseHandlers.EMPTY_CALLBACK
+                    );
+                }
+
             }
 
         }
@@ -70,8 +74,10 @@ public class OutlierCallback implements Callback {
 
     @Override
     public void initialize(EmitContext context) {
-        outlierAlgorithm = outlierConfig.getOutlierAlgorithm();
-        outlierAlgorithm.configure(outlierConfig);
+        sketchyOutlierAlgorithm = outlierConfig.getSketchyOutlierAlgorithm();
+        sketchyOutlierAlgorithm.configure(outlierConfig);
+        batchOutlierAlgorithm = outlierConfig.getBatchOutlierAlgorithm();
+        batchOutlierAlgorithm.configure(outlierConfig);
         Map stormConf = context.get(EmitContext.Type.STORM_CONFIG);
         if(!persistenceConfig.getConfig().containsKey(TSConstants.HBASE_CONFIG_KEY) && stormConf.containsKey(TSConstants.HBASE_CONFIG_KEY)) {
             Configuration config = (Configuration) stormConf.get(TSConstants.HBASE_CONFIG_KEY);

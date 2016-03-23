@@ -3,6 +3,7 @@ package com.caseystella.analytics.distribution;
 import com.caseystella.analytics.DataPoint;
 import com.caseystella.analytics.distribution.config.RotationConfig;
 import com.caseystella.analytics.distribution.config.Type;
+import com.caseystella.analytics.distribution.sampling.ExponentiallyBiasedAChao;
 import com.caseystella.analytics.distribution.scaling.ScalingFunction;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -12,6 +13,8 @@ import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import scala.Tuple2;
 
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
 
 public class Distribution implements Measurable {
 
@@ -20,7 +23,16 @@ public class Distribution implements Measurable {
         private Distribution currentDistribution;
         private Distribution previousDistribution;
         private LinkedList<Distribution> chunks = new LinkedList<>();
+        private ExponentiallyBiasedAChao<Double> reservoir;
 
+        public Context(int reservoirSize, double decayRate) {
+            if(reservoirSize > 0) {
+                reservoir = new ExponentiallyBiasedAChao<>(reservoirSize, decayRate, new Random(0));
+            }
+            else {
+                reservoir = null;
+            }
+        }
         public Distribution getPreviousDistribution() {
             return previousDistribution;
         }
@@ -29,6 +41,9 @@ public class Distribution implements Measurable {
         }
         public LinkedList<Distribution> getChunks() {
             return chunks;
+        }
+        public ExponentiallyBiasedAChao<Double> getSample() {
+            return reservoir;
         }
         public long getAmount() {
             return currentDistribution == null?0L:currentDistribution.getAmount();
@@ -73,6 +88,9 @@ public class Distribution implements Measurable {
             chunks.removeLast();
             previousDistribution = currentDistribution;
             currentDistribution = Distribution.merge(chunks);
+            if(reservoir != null) {
+                reservoir.advancePeriod();
+            }
         }
 
         private Distribution getCurrentChunk() {

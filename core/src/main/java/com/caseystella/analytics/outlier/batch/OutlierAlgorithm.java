@@ -2,6 +2,7 @@ package com.caseystella.analytics.outlier.batch;
 
 import com.caseystella.analytics.DataPoint;
 import com.caseystella.analytics.outlier.Outlier;
+import com.caseystella.analytics.outlier.streaming.OutlierConfig;
 
 import java.io.Serializable;
 import java.util.List;

@@ -2,22 +2,17 @@ package com.caseystella.analytics.outlier;
 
 import backtype.storm.Config;
 import backtype.storm.StormSubmitter;
-import backtype.storm.generated.Nimbus;
 import backtype.storm.metric.LoggingMetricsConsumer;
 import backtype.storm.topology.TopologyBuilder;
-import backtype.storm.utils.NimbusClient;
 import backtype.storm.utils.Utils;
 import com.caseystella.analytics.extractor.DataPointExtractorConfig;
 import com.caseystella.analytics.timeseries.PersistenceConfig;
-import com.caseystella.analytics.timeseries.TSConstants;
 import com.caseystella.analytics.util.JSONUtil;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.HConstants;
-import storm.kafka.CallbackKafkaSpout;
 import storm.kafka.SpoutConfig;
 import storm.kafka.ZkHosts;
 
@@ -57,16 +52,6 @@ public class Topology {
                 return o;
             }
         })
-        ,BATCH_OUTLIER_CONFIG("o", new OptionHandler() {
-            @Nullable
-            @Override
-            public Option apply(@Nullable String s) {
-                Option o = new Option(s, "outlier_config", true, "JSON Document describing the config for the real outlier detector");
-                o.setArgName("JSON_FILE");
-                o.setRequired(true);
-                return o;
-            }
-        })
         ,TIMESERIES_DB_CONFIG("d", new OptionHandler() {
             @Nullable
             @Override
@@ -84,16 +69,6 @@ public class Topology {
                 Option o = new Option(s, "kafka_topic", true, "Kafka Topic to be used");
                 o.setArgName("TOPIC");
                 o.setRequired(true);
-                return o;
-            }
-        })
-        ,NUM_WORKERS("n", new OptionHandler() {
-            @Nullable
-            @Override
-            public Option apply(@Nullable String s) {
-                Option o = new Option(s, "num_workers", true, "Number of workers");
-                o.setArgName("N");
-                o.setRequired(false);
                 return o;
             }
         })
@@ -175,7 +150,6 @@ public class Topology {
 
     public static TopologyBuilder createTopology( DataPointExtractorConfig extractorConfig
                                                 , com.caseystella.analytics.outlier.streaming.OutlierConfig streamingOutlierConfig
-                                                , com.caseystella.analytics.outlier.batch.OutlierConfig batchOutlierConfig
                                                 , PersistenceConfig persistenceConfig
                                                 , String kafkaTopic
                                                 , String zkQuorum
@@ -204,12 +178,12 @@ public class Topology {
                                          , zkQuorum
                                          );
         }
-        OutlierBolt bolt = null;
+        /*OutlierBolt bolt = null;
         {
             bolt = new OutlierBolt(batchOutlierConfig, persistenceConfig);
-        }
-        builder.setSpout(spoutId, spout, 1);
-        builder.setBolt(boltId, bolt, numWorkers).shuffleGrouping(spoutId);
+        }*/
+        builder.setSpout(spoutId, spout, numSpouts);
+        //builder.setBolt(boltId, bolt, numWorkers).shuffleGrouping(spoutId);
         return builder;
     }
 
@@ -221,17 +195,13 @@ public class Topology {
         com.caseystella.analytics.outlier.streaming.OutlierConfig streamingOutlierConfig = JSONUtil.INSTANCE.load(new FileInputStream(new File(OutlierOptions.STREAM_OUTLIER_CONFIG.get(cli)))
                                                                          , com.caseystella.analytics.outlier.streaming.OutlierConfig.class
                                                                          );
-        com.caseystella.analytics.outlier.batch.OutlierConfig batchOutlierConfig = JSONUtil.INSTANCE.load(new FileInputStream(new File(OutlierOptions.BATCH_OUTLIER_CONFIG.get(cli)))
-                                                                         , com.caseystella.analytics.outlier.batch.OutlierConfig.class
-                                                                         );
+
         PersistenceConfig persistenceConfig = JSONUtil.INSTANCE.load(new FileInputStream(new File(OutlierOptions.TIMESERIES_DB_CONFIG.get(cli)))
                                                                          , PersistenceConfig.class
                                                                          );
         int numSpouts = 1;
         int numWorkers = 10;
-        if(OutlierOptions.NUM_WORKERS.has(cli)) {
-            numWorkers = Integer.parseInt(OutlierOptions.NUM_WORKERS.get(cli));
-        }
+
         if(OutlierOptions.NUM_SPOUTS.has(cli)) {
             numSpouts = Integer.parseInt(OutlierOptions.NUM_SPOUTS.get(cli));
         }
@@ -254,7 +224,6 @@ public class Topology {
         boolean startAtBeginning = OutlierOptions.FROM_BEGINNING.has(cli);
         TopologyBuilder topology = createTopology( extractorConfig
                                                  , streamingOutlierConfig
-                                                 , batchOutlierConfig
                                                  , persistenceConfig
                                                  , topicName
                                                  , zkConnectString

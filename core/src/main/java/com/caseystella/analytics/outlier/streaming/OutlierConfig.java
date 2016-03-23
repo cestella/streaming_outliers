@@ -3,8 +3,6 @@ package com.caseystella.analytics.outlier.streaming;
 import com.caseystella.analytics.distribution.GlobalStatistics;
 import com.caseystella.analytics.distribution.config.RotationConfig;
 import com.caseystella.analytics.distribution.scaling.ScalingFunctions;
-import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandler;
-import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandlers;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -15,7 +13,8 @@ public class OutlierConfig implements Serializable {
     private RotationConfig rotationPolicy;
     private RotationConfig chunkingPolicy;
     private GlobalStatistics globalStatistics;
-    private OutlierAlgorithm outlierAlgorithm;
+    private OutlierAlgorithm sketchyOutlierAlgorithm;
+    private com.caseystella.analytics.outlier.batch.OutlierAlgorithm batchOutlierAlgorithm;
     private ScalingFunctions scalingFunction = null;
     private List<String> groupingKeys;
     private Map<String, Object> config = new HashMap<>();
@@ -36,12 +35,19 @@ public class OutlierConfig implements Serializable {
         return globalStatistics;
     }
 
-    public OutlierAlgorithm getOutlierAlgorithm() {
-        return outlierAlgorithm;
+    public OutlierAlgorithm getSketchyOutlierAlgorithm() {
+        return sketchyOutlierAlgorithm;
     }
 
-    public void setOutlierAlgorithm(String outlierAlgorithm) {
-        this.outlierAlgorithm = OutlierAlgorithms.newInstance(outlierAlgorithm);
+    public void setSketchyOutlierAlgorithm(String sketchyOutlierAlgorithm) {
+        this.sketchyOutlierAlgorithm = OutlierAlgorithms.newInstance(sketchyOutlierAlgorithm);
+    }
+    public com.caseystella.analytics.outlier.batch.OutlierAlgorithm getBatchOutlierAlgorithm() {
+        return batchOutlierAlgorithm;
+    }
+
+    public void setBatchOutlierAlgorithm(String batchOutlierAlgorithm) {
+        this.batchOutlierAlgorithm= com.caseystella.analytics.outlier.batch.OutlierAlgorithms.newInstance(batchOutlierAlgorithm);
     }
 
     public void setGlobalStatistics(GlobalStatistics globalStatistics) {

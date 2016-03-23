@@ -56,7 +56,7 @@ public class SketchyMovingMADTest {
         DescriptiveStatistics stats = new DescriptiveStatistics();
         DescriptiveStatistics medianStats = new DescriptiveStatistics();
         OutlierConfig config = JSONUtil.INSTANCE.load(madConfig, OutlierConfig.class);
-        SketchyMovingMAD madAlgo = ((SketchyMovingMAD)config.getOutlierAlgorithm()).withConfig(config);
+        SketchyMovingMAD madAlgo = ((SketchyMovingMAD)config.getSketchyOutlierAlgorithm()).withConfig(config);
         int i = 0;
         for(i = 0; i < 10000;++i) {
             double val = r.nextDouble() * 1000 - 10000;

@@ -6,7 +6,7 @@ import com.caseystella.analytics.distribution.scaling.ScalingFunctions;
 import com.caseystella.analytics.outlier.Outlier;
 import com.caseystella.analytics.outlier.Severity;
 import com.caseystella.analytics.outlier.batch.OutlierAlgorithm;
-import com.caseystella.analytics.outlier.batch.OutlierConfig;
+import com.caseystella.analytics.outlier.streaming.OutlierConfig;
 import com.caseystella.analytics.util.ConfigUtil;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
@@ -14,7 +14,7 @@ import java.util.List;
 
 public class RPCAOutlierAlgorithm implements OutlierAlgorithm{
     private static final double EPSILON = 1e-12;
-    private static final String THRESHOLD_CONF = "threshold";
+    private static final String THRESHOLD_CONF = "rpca.threshold";
 
     private final double LPENALTY_DEFAULT = 1;
     private final double SPENALTY_DEFAULT = 1.4;

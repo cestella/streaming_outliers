@@ -126,15 +126,12 @@ public class DryRunCli {
                 = JSONUtil.INSTANCE.load( new File(DryRunOptions.STREAM_OUTLIER_CONFIG.get(cli))
                                         , com.caseystella.analytics.outlier.streaming.OutlierConfig.class
                                         );
-        com.caseystella.analytics.outlier.batch.OutlierConfig batchOutlierConfig
-                = JSONUtil.INSTANCE.load( new File(DryRunOptions.BATCH_OUTLIER_CONFIG.get(cli))
-                                        , com.caseystella.analytics.outlier.batch.OutlierConfig.class
-                                        );
+
         File inputFile = new File(DryRunOptions.INPUT.get(cli));
         File outputTS = new File(DryRunOptions.OUTPUT.get(cli)+ ".ts");
         File sketchyTS = new File(DryRunOptions.OUTPUT.get(cli)+ ".sketchy");
         File realTS = new File(DryRunOptions.OUTPUT.get(cli)+ ".real");
-        DryRun dryRun = new DryRun(extractorConfig, streamingOutlierConfig, batchOutlierConfig);
+        DryRun dryRun = new DryRun(extractorConfig, streamingOutlierConfig);
         dryRun.run(inputFile, outputTS, sketchyTS, realTS);
     }
 }
