@@ -47,11 +47,15 @@ public class Outlier {
     }
 
     public static String groupingKey(DataPoint dp, List<String> groupingKeys) {
+        return groupingKey(dp.getSource(), dp.getMetadata(), groupingKeys);
+    }
+
+    public static String groupingKey(String source, Map<String, String> metadata, List<String> groupingKeys) {
         List<String> keyParts = new ArrayList<>();
-        keyParts.add(dp.getSource());
+        keyParts.add(source);
         if(groupingKeys != null) {
             for (String gk : groupingKeys) {
-                String k = dp.getMetadata().get(gk);
+                String k = metadata.get(gk);
                 if (k != null) {
                     keyParts.add(k);
                 }

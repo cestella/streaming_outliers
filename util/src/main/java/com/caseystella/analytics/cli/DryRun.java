@@ -12,24 +12,36 @@ import com.caseystella.analytics.timeseries.inmemory.InMemoryTimeSeriesDB;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class DryRun {
     public static final String METRIC = "metric";
     DataPointExtractorConfig extractorConfig ;
     com.caseystella.analytics.outlier.streaming.OutlierConfig streamingOutlierConfig;
+    Map<String, String> outputFilter;
     public DryRun( DataPointExtractorConfig extractorConfig
                  , com.caseystella.analytics.outlier.streaming.OutlierConfig streamingOutlierConfig
+                 , Properties outputFilter
                  )
     {
         this.extractorConfig = extractorConfig;
         this.streamingOutlierConfig = streamingOutlierConfig;
+        this.outputFilter = new HashMap<>();
+        for(Map.Entry<Object, Object> kv : outputFilter.entrySet()) {
+            this.outputFilter.put(kv.getKey().toString(), kv.getValue().toString());
+        }
     }
-
+    public boolean filterMatch(DataPoint dp) {
+        boolean ret = true;
+        for(Map.Entry<String, String> kv : outputFilter.entrySet()) {
+            String target = dp.getMetadata().get(kv.getKey());
+            ret &= target != null && target.toLowerCase().startsWith(kv.getValue().toLowerCase());
+        }
+        return ret;
+    }
     public void run(File inputFile, File tsOutF, File sketchyOutF, File realOutF) throws IOException
     {
+        System.out.println("Filter: " + this.outputFilter);
         PrintWriter tsOut = new PrintWriter(tsOutF)
                   , sketchyOut = new PrintWriter(sketchyOutF)
                   , realOut = new PrintWriter(realOutF);
@@ -39,7 +51,6 @@ public class DryRun {
         OutlierAlgorithm detector =  streamingOutlierConfig.getBatchOutlierAlgorithm();
         detector.configure(streamingOutlierConfig);
         DataPointExtractor extractor = new DataPointExtractor().withConfig(extractorConfig);
-        InMemoryTimeSeriesDB tsdb = new InMemoryTimeSeriesDB();
         BufferedReader br = new BufferedReader(new FileReader(inputFile));
         int lineNo = 1;
         for(String line = null;(line = br.readLine()) != null;lineNo++) {
@@ -51,14 +62,23 @@ public class DryRun {
             }
             for(DataPoint dp : extractor.extract(new byte[]{}, Bytes.toBytes(line), false)) {
                 String pt = dp.getTimestamp() + "," + dp.getValue();
-                tsdb.persist("metric", dp, new HashMap<String, String>(), null);
-                tsOut.println(pt);
+                boolean print = true;
+                if(!outputFilter.isEmpty()) {
+                    print = filterMatch(dp);
+                }
+                if(print) {
+                    tsOut.println(pt);
+                }
                 Outlier outlier = madAlgo.analyze(dp);
                 if(outlier.getSeverity() == Severity.SEVERE_OUTLIER) {
-                    sketchyOut.println(pt);
+                    if(print) {
+                        sketchyOut.println(pt);
+                    }
                     Outlier realOutlier = detector.analyze(outlier, outlier.getSample(), dp);
                     if(realOutlier.getSeverity() == Severity.SEVERE_OUTLIER) {
-                        realOut.println(pt);
+                        if(print) {
+                            realOut.println(pt);
+                        }
                     }
                 }
             }

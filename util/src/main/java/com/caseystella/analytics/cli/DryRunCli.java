@@ -9,6 +9,7 @@ import org.apache.commons.cli.*;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.util.Properties;
 
 public class DryRunCli {
     private static abstract class OptionHandler implements Function<String, Option> {}
@@ -41,14 +42,16 @@ public class DryRunCli {
                 return o;
             }
         })
-        ,BATCH_OUTLIER_CONFIG("o", new OptionHandler() {
-            @Nullable
+        , FILTER("f", new OptionHandler() {
+
             @Override
             public Option apply(@Nullable String s) {
-                Option o = new Option(s, "outlier_config", true, "JSON Document describing the config for the real outlier detector");
-                o.setArgName("JSON_FILE");
-                o.setRequired(true);
-                return o;
+                return OptionBuilder.withArgName( "property=value" )
+                        .hasArgs(2)
+                        .withValueSeparator()
+                        .withDescription( "use value for given property" )
+                        .withLongOpt("filter")
+                        .create( s );
             }
         })
         ,INPUT("i", new OptionHandler() {
@@ -82,6 +85,9 @@ public class DryRunCli {
             return cli.hasOption(shortCode);
         }
 
+        public Properties getProperties(CommandLine cli) {
+            return cli.getOptionProperties(shortCode);
+        }
         public String get(CommandLine cli) {
             return cli.getOptionValue(shortCode);
         }
@@ -131,7 +137,9 @@ public class DryRunCli {
         File outputTS = new File(DryRunOptions.OUTPUT.get(cli)+ ".ts");
         File sketchyTS = new File(DryRunOptions.OUTPUT.get(cli)+ ".sketchy");
         File realTS = new File(DryRunOptions.OUTPUT.get(cli)+ ".real");
-        DryRun dryRun = new DryRun(extractorConfig, streamingOutlierConfig);
+        Properties filter = DryRunOptions.FILTER.getProperties(cli);
+        DryRun dryRun = new DryRun(extractorConfig, streamingOutlierConfig, filter);
+        System.out.println("Running with filter: \n" + filter);
         dryRun.run(inputFile, outputTS, sketchyTS, realTS);
     }
 }
