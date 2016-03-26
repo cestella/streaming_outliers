@@ -18,7 +18,6 @@ public enum TimeseriesDatabaseHandlers {
     public static final String RAW_TYPE = "raw";
     public static final String PROSPECTIVE_TYPE = "prospective_outlier";
     public static final String OUTLIER_TYPE = "outlier";
-    public static final String SEVERITY_TAG_KEY = "severity";
     Class<? extends TimeseriesDatabaseHandler> clazz;
     TimeseriesDatabaseHandlers(Class<? extends TimeseriesDatabaseHandler> clazz) {
         this.clazz = clazz;
@@ -40,7 +39,6 @@ public enum TimeseriesDatabaseHandlers {
 
     public static Map<String, String> getOutlierTags(final DataPoint dp, final Severity outlierSeverity, final String type) {
         HashMap<String, String> ret = new HashMap<>(dp.getMetadata());
-        ret.put(SEVERITY_TAG_KEY, outlierSeverity.toString());
         ret.put(TYPE_KEY, type);
         return ret;
     }

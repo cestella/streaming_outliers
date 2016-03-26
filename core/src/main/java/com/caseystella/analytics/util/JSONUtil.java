@@ -1,5 +1,6 @@
 package com.caseystella.analytics.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -57,6 +58,10 @@ public enum JSONUtil {
     }
     public <T> T load(String s, TypeReference<T> reference) throws IOException {
         return load( s, Charset.defaultCharset(), reference);
+    }
+
+    public  String toJSON(Object bean ) throws JsonProcessingException {
+        return MAPPER.get().writerWithDefaultPrettyPrinter().writeValueAsString(bean);
     }
 
 }

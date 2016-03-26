@@ -1,6 +1,7 @@
 package com.caseystella.analytics.outlier.batch.rpca;
 
 import com.caseystella.analytics.DataPoint;
+import com.caseystella.analytics.outlier.Outlier;
 import com.caseystella.analytics.outlier.Severity;
 import com.caseystella.analytics.outlier.batch.rpca.RPCAOutlierAlgorithm;
 import org.junit.Assert;
@@ -22,6 +23,14 @@ public class RPCATest {
     }
     DataPoint evaluationPoint = new DataPoint(101, 10000, null, "foo");
     RPCAOutlierAlgorithm detector = new RPCAOutlierAlgorithm();
-    Assert.assertEquals(Severity.SEVERE_OUTLIER, detector.isOutlier(points, evaluationPoint));
+    Assert.assertEquals( Severity.SEVERE_OUTLIER
+                       , detector.analyze( new Outlier( evaluationPoint
+                                                      , Severity.NORMAL
+                                                      ,null, 0d, points.size()
+                                                      )
+                                         , points
+                                         , evaluationPoint
+                                         )
+                       );
   }
 }

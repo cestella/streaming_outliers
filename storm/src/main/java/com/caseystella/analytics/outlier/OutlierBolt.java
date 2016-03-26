@@ -4,6 +4,7 @@ import backtype.storm.task.OutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.IRichBolt;
 import backtype.storm.topology.OutputFieldsDeclarer;
+import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Tuple;
 import com.caseystella.analytics.DataPoint;
 import com.caseystella.analytics.outlier.streaming.OutlierAlgorithm;
@@ -12,10 +13,16 @@ import com.caseystella.analytics.timeseries.PersistenceConfig;
 import com.caseystella.analytics.timeseries.TSConstants;
 import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandler;
 import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandlers;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.collect.ImmutableList;
+import org.apache.log4j.Logger;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class OutlierBolt implements IRichBolt {
+    public static String STREAM_ID = "outliers";
+    private static final Logger LOG = Logger.getLogger(OutlierBolt.class);
     OutputCollector _collector;
     OutlierConfig outlierConfig;
     OutlierAlgorithm sketchyOutlierAlgorithm;
@@ -100,6 +107,11 @@ public class OutlierBolt implements IRichBolt {
                         )
                         , TimeseriesDatabaseHandlers.EMPTY_CALLBACK
                 );
+                try {
+                    _collector.emit(STREAM_ID, ImmutableList.<Object>of(OutlierHelper.INSTANCE.toJson(dp)));
+                } catch (RuntimeException e) {
+                    LOG.error(e.getMessage(), e);
+                }
             }
 
         }
@@ -126,7 +138,7 @@ public class OutlierBolt implements IRichBolt {
      */
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-
+        declarer.declareStream(STREAM_ID, new Fields(ImmutableList.of("outlier")));
     }
 
 

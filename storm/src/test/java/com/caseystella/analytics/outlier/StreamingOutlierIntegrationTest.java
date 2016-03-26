@@ -3,6 +3,7 @@ package com.caseystella.analytics.outlier;
 import backtype.storm.Config;
 import backtype.storm.topology.TopologyBuilder;
 import com.caseystella.analytics.DataPoint;
+import com.caseystella.analytics.integration.components.ElasticSearchComponent;
 import com.caseystella.analytics.timeseries.inmemory.InMemoryTimeSeriesDB;
 import com.caseystella.analytics.extractor.DataPointExtractorConfig;
 import com.caseystella.analytics.integration.ComponentRunner;
@@ -22,6 +23,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -67,9 +69,11 @@ public class StreamingOutlierIntegrationTest {
                          }
      ,"globalStatistics" : {
                          }
-     ,"outlierAlgorithm" : "SKETCHY_MOVING_MAD"
+     ,"sketchyOutlierAlgorithm" : "SKETCHY_MOVING_MAD"
+     ,"batchOutlierAlgorithm" : "RAD"
      ,"config" : {
                  "minAmountToPredict" : 100
+                ,"reservoirSize" : 100
                 ,"zscoreCutoffs" : {
                                     "NORMAL" : 3.5
                                    ,"MODERATE_OUTLIER" : 5
@@ -80,16 +84,7 @@ public class StreamingOutlierIntegrationTest {
     @Multiline
     public static String streamingOutlierConfigStr;
 
-    /**
-     {
-      "algorithm" : "RAD"
-     ,"headStart" : 0
-     , "config" : {}
-     }
-     */
-    @Multiline
-    public static String batchOutlierConfigStr;
-    /**
+   /**
      {
      "databaseHandler" : "com.caseystella.analytics.timeseries.inmemory.InMemoryTimeSeriesDB"
      ,"config" : {}
@@ -98,6 +93,7 @@ public class StreamingOutlierIntegrationTest {
     @Multiline
     public static String persistenceConfigStr;
     public static String KAFKA_TOPIC = "topic";
+    private static String indexDir = "target/elasticsearch";
     public final static DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     public static Function<DataPoint, byte[]> TO_STR = new Function<DataPoint, byte[]>() {
         @Nullable
@@ -122,15 +118,13 @@ public class StreamingOutlierIntegrationTest {
     }
     @Test
     public void test() throws IOException, UnableToStartException {
-        /*DataPointExtractorConfig extractorConfig = JSONUtil.INSTANCE.load(extractorConfigStr
+        DataPointExtractorConfig extractorConfig = JSONUtil.INSTANCE.load(extractorConfigStr
                                                                          , DataPointExtractorConfig.class
                                                                          );
         com.caseystella.analytics.outlier.streaming.OutlierConfig streamingOutlierConfig = JSONUtil.INSTANCE.load(streamingOutlierConfigStr
                                                                          , com.caseystella.analytics.outlier.streaming.OutlierConfig.class
                                                                          );
-        com.caseystella.analytics.outlier.batch.OutlierConfig batchOutlierConfig = JSONUtil.INSTANCE.load(batchOutlierConfigStr
-                                                                         , com.caseystella.analytics.outlier.batch.OutlierConfig.class
-                                                                         );
+
         PersistenceConfig persistenceConfig = JSONUtil.INSTANCE.load(persistenceConfigStr
                                                                     , PersistenceConfig.class
                                                                     );
@@ -149,27 +143,34 @@ public class StreamingOutlierIntegrationTest {
         final StormTopologyComponent stormComponent = new StormTopologyComponent.Builder()
                                                                                 .withTopologyName("streaming_outliers")
                                                                                 .build();
+        final ElasticSearchComponent esComponent = new ElasticSearchComponent.Builder()
+                .withHttpPort(9211)
+                .withIndexDir(new File(indexDir))
+                .build();
         ComponentRunner runner = new ComponentRunner.Builder()
+                .withComponent("es", esComponent)
                 .withComponent("kafka", kafkaComponent)
                 .withComponent("storm", stormComponent)
                 .withMillisecondsBetweenAttempts(10000)
-                .withNumRetries(10)
+                .withNumRetries(100)
                 .build();
         runner.start();
         try {
 
             TopologyBuilder topology = Topology.createTopology(extractorConfig
                                                               , streamingOutlierConfig
-                                                              , batchOutlierConfig
                                                               , persistenceConfig
                                                               , KAFKA_TOPIC
                                                               , zkQuorum.toString()
+                                                              , "localhost:9211"
+                                                              , 1
                                                               , 1
                                                               , 1
                                                               , true);
             Config config = new Config();
             stormComponent.submitTopology(topology,config );
             kafkaComponent.writeMessages(KAFKA_TOPIC, getMessages());
+            final String indexName = KAFKA_TOPIC + ".benchmark";
             List<DataPoint> outliers =
             runner.process(new Processor<List<DataPoint>>() {
                 List<DataPoint> outliers = new ArrayList<>();
@@ -181,9 +182,18 @@ public class StreamingOutlierIntegrationTest {
                         public boolean apply(@Nullable DataPoint dataPoint) {
                             String type = dataPoint.getMetadata().get(TimeseriesDatabaseHandlers.TYPE_KEY);
                             return type != null && type.equals(TimeseriesDatabaseHandlers.OUTLIER_TYPE);
+
                         }
                     });
-                    if(Iterables.size(outlierPoints) > 0) {
+                    boolean isDone = false;
+                    try {
+                        isDone = esComponent.hasIndex(indexName)
+                                && esComponent.getAllIndexedDocs(indexName).size() > 0;
+                    } catch (IOException e) {
+                        //swallow
+                        e.printStackTrace();
+                    }
+                    if(isDone && Iterables.size(outlierPoints) > 0) {
                         Iterables.addAll(outliers, outlierPoints);
                         return ReadinessState.READY;
                     }
@@ -195,6 +205,11 @@ public class StreamingOutlierIntegrationTest {
                     return outliers;
                 }
             });
+            List<Map<String, Object>> outlierIndex = esComponent.getAllIndexedDocs(indexName);
+            for(Map<String, Object> o : outlierIndex) {
+                System.out.println(o);
+            }
+            Assert.assertEquals(outlierIndex.size(),1);
             Assert.assertEquals(outliers.size(), 1);
             Assert.assertEquals(outliers.get(0).getTimestamp(), 1000*1000);
         }
@@ -203,6 +218,6 @@ public class StreamingOutlierIntegrationTest {
             InMemoryTimeSeriesDB.clear();
         }
 
-*/
+
     }
 }

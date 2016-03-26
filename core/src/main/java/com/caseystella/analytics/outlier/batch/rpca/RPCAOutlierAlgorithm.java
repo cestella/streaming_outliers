@@ -4,6 +4,7 @@ import com.caseystella.analytics.DataPoint;
 import com.caseystella.analytics.distribution.GlobalStatistics;
 import com.caseystella.analytics.distribution.scaling.ScalingFunctions;
 import com.caseystella.analytics.outlier.Outlier;
+import com.caseystella.analytics.outlier.OutlierMetadataConstants;
 import com.caseystella.analytics.outlier.Severity;
 import com.caseystella.analytics.outlier.batch.OutlierAlgorithm;
 import com.caseystella.analytics.outlier.streaming.OutlierConfig;
@@ -69,7 +70,7 @@ public class RPCAOutlierAlgorithm implements OutlierAlgorithm{
 
 
 
-    public Severity isOutlier(List<DataPoint> dataPoints, DataPoint value) {
+    public double outlierScore(List<DataPoint> dataPoints, DataPoint value) {
         double[] inputData = new double[dataPoints.size() + 1];
         int numNonZero = 0;
         if(scaling != ScalingFunctions.NONE) {
@@ -148,23 +149,26 @@ public class RPCAOutlierAlgorithm implements OutlierAlgorithm{
             double[][] outputE = rSVD.getE().getData();
             double[][] outputS = rSVD.getS().getData();
             double[][] outputL = rSVD.getL().getData();
-            double E = outputE[nRows-1][0];
-            double S = outputS[nRows-1][0];
-            double L = outputL[nRows-1][0];
-            return Math.abs(S) > threshold?Severity.SEVERE_OUTLIER:Severity.NORMAL;
+            return outputS[nRows-1][0];
         }
         else {
-            return Severity.NOT_ENOUGH_DATA;
+            return Double.NaN;
         }
     }
 
     @Override
     public Outlier analyze(Outlier outlierCandidate, List<DataPoint> context, DataPoint dp) {
-        outlierCandidate.setSeverity(isOutlier(context, dp));
+        double score = outlierScore(context, dp);
+        Severity severity = Severity.NOT_ENOUGH_DATA;
+        if(!Double.isNaN(score)) {
+            severity = Math.abs(score) > threshold?Severity.SEVERE_OUTLIER:Severity.NORMAL;
+        }
+        outlierCandidate.setSeverity(severity);
+        if(severity == Severity.SEVERE_OUTLIER) {
+            dp.getMetadata().put(OutlierMetadataConstants.REAL_OUTLIER_SCORE.toString(), score + "");
+        }
         return outlierCandidate;
     }
-
-
 
     @Override
     public void configure(OutlierConfig config) {

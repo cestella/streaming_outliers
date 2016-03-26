@@ -23,7 +23,6 @@ public class Outlier {
         this.range = range;
         this.score = score;
         this.numPts = numPts;
-        this.sample = sample;
     }
 
     public static Map<String, String> groupingFilter(DataPoint dp, List<String> groupingKeys, List<String> allTags) {

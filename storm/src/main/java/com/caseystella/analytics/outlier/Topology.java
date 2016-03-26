@@ -14,12 +14,15 @@ import com.google.common.base.Joiner;
 import org.apache.commons.cli.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.elasticsearch.hadoop.cfg.ConfigurationOptions;
+import org.elasticsearch.storm.EsBolt;
 import storm.kafka.SpoutConfig;
 import storm.kafka.ZkHosts;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.HashMap;
 import java.util.Map;
 
 public class Topology {
@@ -112,6 +115,16 @@ public class Topology {
                 return o;
             }
         })
+        ,ES_NODE("q", new OptionHandler() {
+            @Nullable
+            @Override
+            public Option apply(@Nullable String s) {
+                Option o = new Option(s, "es_node", true, "Elastic search node");
+                o.setArgName("host:port");
+                o.setRequired(true);
+                return o;
+            }
+        })
         ;
         Option option;
         String shortCode;
@@ -164,8 +177,10 @@ public class Topology {
                                                 , PersistenceConfig persistenceConfig
                                                 , String kafkaTopic
                                                 , String zkQuorum
+                                                , String esNode
                                                 , int numWorkers
                                                 , int numSpouts
+                                                , int numIndexers
                                                 , boolean startAtBeginning
                                          )
     {
@@ -198,6 +213,15 @@ public class Topology {
         }
         builder.setSpout(spoutId, spout, numSpouts);
         builder.setBolt(boltId, bolt, numWorkers).fieldsGrouping(spoutId, new Fields(Constants.GROUP_ID));
+        {
+            Map conf = new HashMap();
+            conf.put("es.input.json", "true");
+            if(esNode != null) {
+                conf.put(ConfigurationOptions.ES_NODES, esNode);
+            }
+            builder.setBolt("es_bolt", new EsBolt("outliers/{source}", conf), numIndexers)
+                   .shuffleGrouping(boltId, OutlierBolt.STREAM_ID);
+        }
         return builder;
     }
 
@@ -243,8 +267,10 @@ public class Topology {
                                                  , persistenceConfig
                                                  , topicName
                                                  , zkConnectString
+                                                 , OutlierOptions.ES_NODE.get(cli)
                                                  , numWorkers
                                                  , numSpouts
+                                                 , 5
                                                  , startAtBeginning
                                                  );
         StormSubmitter.submitTopologyWithProgressBar( topologyName, clusterConf, topology.createTopology());

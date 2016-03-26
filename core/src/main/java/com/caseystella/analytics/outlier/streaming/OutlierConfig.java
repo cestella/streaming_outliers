@@ -3,6 +3,7 @@ package com.caseystella.analytics.outlier.streaming;
 import com.caseystella.analytics.distribution.GlobalStatistics;
 import com.caseystella.analytics.distribution.config.RotationConfig;
 import com.caseystella.analytics.distribution.scaling.ScalingFunctions;
+import com.google.common.collect.ImmutableList;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -16,8 +17,17 @@ public class OutlierConfig implements Serializable {
     private OutlierAlgorithm sketchyOutlierAlgorithm;
     private com.caseystella.analytics.outlier.batch.OutlierAlgorithm batchOutlierAlgorithm;
     private ScalingFunctions scalingFunction = null;
+    private List<Double> percentilesToTrack = ImmutableList.of(0.50d, 0.75d, 0.90d, 0.95d, 0.99d);
     private List<String> groupingKeys;
     private Map<String, Object> config = new HashMap<>();
+
+    public List<Double> getPercentilesToTrack() {
+        return percentilesToTrack;
+    }
+
+    public void setPercentilesToTrack(List<Double> percentilesToTrack) {
+        this.percentilesToTrack = percentilesToTrack;
+    }
 
     public List<String> getGroupingKeys() {
         return groupingKeys;

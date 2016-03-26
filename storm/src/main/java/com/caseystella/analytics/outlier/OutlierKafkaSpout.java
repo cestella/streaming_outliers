@@ -11,8 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class OutlierKafkaSpout extends KafkaSpout{
-    private OutlierConfig outlierConfig;
-    private PersistenceConfig persistenceConfig;
     public OutlierKafkaSpout( SpoutConfig spoutConfig
                             , DataPointExtractorConfig extractorConfig
                             , List<String> groupingKeys

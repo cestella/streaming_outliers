@@ -5,6 +5,7 @@ import com.caseystella.analytics.outlier.Outlier;
 import com.caseystella.analytics.distribution.Distribution;
 import com.caseystella.analytics.distribution.scaling.ScalingFunctions;
 import com.caseystella.analytics.distribution.SimpleTimeRange;
+import com.caseystella.analytics.outlier.OutlierMetadataConstants;
 import com.caseystella.analytics.outlier.streaming.OutlierAlgorithm;
 import com.caseystella.analytics.outlier.streaming.OutlierConfig;
 import com.caseystella.analytics.outlier.Severity;
@@ -126,6 +127,18 @@ public class SketchyMovingMAD implements OutlierAlgorithm{
         adjustSeverity(o);
         if(o.getSeverity() == Severity.SEVERE_OUTLIER) {
             o.setSample(getSample(valueDistribution.getSample().getReservoir()));
+            double pt = scalePoint(dp);
+            double minPct= 0;
+            for(Double percentile : config.getPercentilesToTrack()) {
+                if(pt > valueDistribution.getCurrentDistribution().getPercentile(percentile)) {
+                    minPct = percentile;
+                }
+                else {
+                    break;
+                }
+            }
+            dp.getMetadata().put(OutlierMetadataConstants.VALUE_PERCENTILE.toString(), "" + minPct);
+            dp.getMetadata().put(OutlierMetadataConstants.PROSPECTIVE_OUTLIER_SCORE.toString(), "" + zScore);
         }
         valueDistribution.getSample().insert(dp.getValue());
         return o;
