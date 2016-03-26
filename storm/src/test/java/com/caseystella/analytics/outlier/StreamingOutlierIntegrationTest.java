@@ -166,6 +166,7 @@ public class StreamingOutlierIntegrationTest {
                                                               , 1
                                                               , 1
                                                               , 1
+                                                              , "outliers"
                                                               , true);
             Config config = new Config();
             stormComponent.submitTopology(topology,config );

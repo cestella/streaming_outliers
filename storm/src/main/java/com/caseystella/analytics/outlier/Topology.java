@@ -11,6 +11,8 @@ import com.caseystella.analytics.timeseries.PersistenceConfig;
 import com.caseystella.analytics.util.JSONUtil;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 import org.apache.commons.cli.*;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -86,6 +88,16 @@ public class Topology {
                 return o;
             }
         })
+        ,NUM_INDEXING_WORKERS("g", new OptionHandler() {
+            @Nullable
+            @Override
+            public Option apply(@Nullable String s) {
+                Option o = new Option(s, "num_indexing_workers", true, "Number of indexing workers");
+                o.setArgName("N");
+                o.setRequired(false);
+                return o;
+            }
+        })
         ,NUM_SPOUTS("x", new OptionHandler() {
             @Nullable
             @Override
@@ -122,6 +134,16 @@ public class Topology {
                 Option o = new Option(s, "es_node", true, "Elastic search node");
                 o.setArgName("host:port");
                 o.setRequired(true);
+                return o;
+            }
+        })
+        ,INDEX("i", new OptionHandler() {
+            @Nullable
+            @Override
+            public Option apply(@Nullable String s) {
+                Option o = new Option(s, "index_name", true, "Elastic search index name");
+                o.setArgName("NAME");
+                o.setRequired(false);
                 return o;
             }
         })
@@ -181,6 +203,7 @@ public class Topology {
                                                 , int numWorkers
                                                 , int numSpouts
                                                 , int numIndexers
+                                                , String indexName
                                                 , boolean startAtBeginning
                                          )
     {
@@ -217,9 +240,19 @@ public class Topology {
             Map conf = new HashMap();
             conf.put("es.input.json", "true");
             if(esNode != null) {
-                conf.put(ConfigurationOptions.ES_NODES, esNode);
+                if(esNode.contains(":")) {
+                    Iterable<String> tokens = Splitter.on(':').split(esNode);
+                    String host = Iterables.getFirst(tokens, ConfigurationOptions.ES_NODES_DEFAULT);
+                    String port = Iterables.getLast(tokens, ConfigurationOptions.ES_PORT_DEFAULT);
+                    conf.put(ConfigurationOptions.ES_NODES, host);
+                    conf.put(ConfigurationOptions.ES_PORT, port);
+                }
+                else {
+                    conf.put(ConfigurationOptions.ES_NODES, esNode);
+                }
             }
-            builder.setBolt("es_bolt", new EsBolt("outliers/{source}", conf), numIndexers)
+            conf.put(ConfigurationOptions.ES_INDEX_AUTO_CREATE, true);
+            builder.setBolt("es_bolt", new EsBolt(indexName, conf), numIndexers)
                    .shuffleGrouping(boltId, OutlierBolt.STREAM_ID);
         }
         return builder;
@@ -270,7 +303,12 @@ public class Topology {
                                                  , OutlierOptions.ES_NODE.get(cli)
                                                  , numWorkers
                                                  , numSpouts
-                                                 , 5
+                                                 , OutlierOptions.NUM_INDEXING_WORKERS.has(cli)?
+                                                   Integer.parseInt(OutlierOptions.NUM_INDEXING_WORKERS.get(cli)):
+                                                   5
+                                                 , OutlierOptions.INDEX.has(cli)?
+                                                   OutlierOptions.INDEX.get(cli):
+                                                   "outlier/{source}"
                                                  , startAtBeginning
                                                  );
         StormSubmitter.submitTopologyWithProgressBar( topologyName, clusterConf, topology.createTopology());

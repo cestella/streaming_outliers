@@ -11,6 +11,7 @@ import com.caseystella.analytics.outlier.streaming.OutlierConfig;
 import com.caseystella.analytics.util.ConfigUtil;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class RPCAOutlierAlgorithm implements OutlierAlgorithm{
@@ -165,6 +166,9 @@ public class RPCAOutlierAlgorithm implements OutlierAlgorithm{
         }
         outlierCandidate.setSeverity(severity);
         if(severity == Severity.SEVERE_OUTLIER) {
+            if(dp.getMetadata() == null) {
+                dp.setMetadata(new HashMap<String, String>());
+            }
             dp.getMetadata().put(OutlierMetadataConstants.REAL_OUTLIER_SCORE.toString(), score + "");
         }
         return outlierCandidate;
