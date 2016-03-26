@@ -34,7 +34,8 @@ public enum TimeseriesDatabaseHandlers {
     public static Map<String, String> getTags(final DataPoint dp, final String type, List<String> tags) {
         HashMap<String, String> ret = null;
         if(tags == null || tags.isEmpty()) {
-            ret = new HashMap<>(dp.getMetadata());
+            throw new RuntimeException("You must specify tags!");
+            //ret = new HashMap<>(dp.getMetadata());
         }
         else {
             for(String tag : tags) {
