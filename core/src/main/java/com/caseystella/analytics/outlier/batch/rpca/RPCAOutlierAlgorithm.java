@@ -169,7 +169,7 @@ public class RPCAOutlierAlgorithm implements OutlierAlgorithm{
             if(dp.getMetadata() == null) {
                 dp.setMetadata(new HashMap<String, String>());
             }
-            dp.getMetadata().put(OutlierMetadataConstants.REAL_OUTLIER_SCORE.toString(), score + "");
+            dp.getMetadata().put(OutlierMetadataConstants.REAL_OUTLIER_SCORE.toString(), Math.abs(score) + "");
         }
         return outlierCandidate;
     }

@@ -5,23 +5,13 @@ import com.caseystella.analytics.distribution.SimpleTimeRange;
 import com.caseystella.analytics.integration.ComponentRunner;
 import com.caseystella.analytics.integration.UnableToStartException;
 import com.caseystella.analytics.integration.components.TSDBComponent;
-import com.caseystella.analytics.outlier.Outlier;
 import com.caseystella.analytics.outlier.Severity;
-import com.caseystella.analytics.timeseries.TSConstants;
 import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandlers;
 import com.caseystella.analytics.util.DistributionUtil;
 import com.google.common.base.Function;
-import net.opentsdb.core.TSDB;
-import net.opentsdb.core.Tags;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
-import org.apache.hadoop.hbase.HConstants;
-import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PatternLayout;
 import org.junit.Assert;
 import org.junit.Test;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -65,14 +55,14 @@ public class TSDBIntegrationTest {
                     numPtsAdded++;
                     handler.persist(metric
                                    , dp
-                                   , TimeseriesDatabaseHandlers.getOutlierTags(dp, Severity.SEVERE_OUTLIER, TimeseriesDatabaseHandlers.PROSPECTIVE_TYPE )
+                                   , TimeseriesDatabaseHandlers.getTags(dp, TimeseriesDatabaseHandlers.PROSPECTIVE_TYPE, null )
                                    , new TimingCallback(System.currentTimeMillis(), latencyStats)
                                    );
                 }
                 numPtsAdded++;
                 handler.persist(metric
                                , dp
-                               , TimeseriesDatabaseHandlers.getBasicTags(dp, TimeseriesDatabaseHandlers.RAW_TYPE)
+                               , TimeseriesDatabaseHandlers.getTags(dp, TimeseriesDatabaseHandlers.RAW_TYPE, null)
                                 , new TimingCallback(System.currentTimeMillis(), latencyStats)
                                );
                 i++;
@@ -86,7 +76,7 @@ public class TSDBIntegrationTest {
             DataPoint evaluationPoint = points.get(50);
             handler.persist(metric
                            ,evaluationPoint
-                           , TimeseriesDatabaseHandlers.getOutlierTags(evaluationPoint, Severity.SEVERE_OUTLIER, TimeseriesDatabaseHandlers.OUTLIER_TYPE)
+                           , TimeseriesDatabaseHandlers.getTags(evaluationPoint, TimeseriesDatabaseHandlers.OUTLIER_TYPE, null)
                            );
             List<DataPoint> context = handler.retrieve(metric, evaluationPoint, new SimpleTimeRange(offset, offset + 50), new HashMap<String, String>(), -1);
             Assert.assertEquals(50, context.size());

@@ -129,15 +129,18 @@ public class SketchyMovingMAD implements OutlierAlgorithm{
             o.setSample(getSample(valueDistribution.getSample().getReservoir()));
             double pt = scalePoint(dp);
             double minPct= 0;
+            boolean update = true;
             for(Double percentile : config.getPercentilesToTrack()) {
-                if(pt > valueDistribution.getCurrentDistribution().getPercentile(percentile)) {
+                Double percentileValue = valueDistribution.getCurrentDistribution().getPercentile(percentile);
+                if(update && pt > percentileValue) {
                     minPct = percentile;
                 }
                 else {
-                    break;
+                    update = false;
                 }
+                dp.getMetadata().put("" + 100*percentile + "th_pctile", "" + percentileValue);
             }
-            dp.getMetadata().put(OutlierMetadataConstants.VALUE_PERCENTILE.toString(), "" + minPct);
+            dp.getMetadata().put(OutlierMetadataConstants.VALUE_PCTILE.toString(), "" + (100.0*minPct));
             dp.getMetadata().put(OutlierMetadataConstants.PROSPECTIVE_OUTLIER_SCORE.toString(), "" + zScore);
         }
         valueDistribution.getSample().insert(dp.getValue());

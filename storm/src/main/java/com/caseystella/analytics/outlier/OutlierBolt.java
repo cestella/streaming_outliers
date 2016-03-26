@@ -10,14 +10,11 @@ import com.caseystella.analytics.DataPoint;
 import com.caseystella.analytics.outlier.streaming.OutlierAlgorithm;
 import com.caseystella.analytics.outlier.streaming.OutlierConfig;
 import com.caseystella.analytics.timeseries.PersistenceConfig;
-import com.caseystella.analytics.timeseries.TSConstants;
 import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandler;
 import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandlers;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableList;
 import org.apache.log4j.Logger;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class OutlierBolt implements IRichBolt {
@@ -91,7 +88,10 @@ public class OutlierBolt implements IRichBolt {
         //this guy gets persisted to TSDB
         tsdbHandler.persist(dp.getSource()
                 , dp
-                , TimeseriesDatabaseHandlers.getBasicTags(dp, TimeseriesDatabaseHandlers.RAW_TYPE)
+                , TimeseriesDatabaseHandlers.getTags(dp
+                                                    , TimeseriesDatabaseHandlers.RAW_TYPE
+                                                    , persistenceConfig.getTags()
+                                                    )
                 , TimeseriesDatabaseHandlers.EMPTY_CALLBACK
         );
         //now let's look for outliers
@@ -101,9 +101,9 @@ public class OutlierBolt implements IRichBolt {
             if(outlier.getSeverity() == Severity.SEVERE_OUTLIER) {
                 tsdbHandler.persist(dp.getSource()
                         , dp
-                        , TimeseriesDatabaseHandlers.getOutlierTags(dp
-                                , outlier.getSeverity()
-                                , TimeseriesDatabaseHandlers.OUTLIER_TYPE
+                        , TimeseriesDatabaseHandlers.getTags(dp
+                                            , TimeseriesDatabaseHandlers.OUTLIER_TYPE
+                                            , persistenceConfig.getTags()
                         )
                         , TimeseriesDatabaseHandlers.EMPTY_CALLBACK
                 );

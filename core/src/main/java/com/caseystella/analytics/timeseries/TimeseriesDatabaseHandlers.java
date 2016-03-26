@@ -23,12 +23,6 @@ public enum TimeseriesDatabaseHandlers {
         this.clazz = clazz;
     }
 
-    public static Map<String, String> getBasicTags( DataPoint dp, String type) {
-        Map<String, String> tags= new HashMap<>();
-        tags.putAll(dp.getMetadata());
-        tags.put(TYPE_KEY, type);
-        return tags;
-    }
 
     public static Function<Object, Void> EMPTY_CALLBACK  = new Function<Object, Void>() {
         @Override
@@ -37,8 +31,20 @@ public enum TimeseriesDatabaseHandlers {
         }
     };
 
-    public static Map<String, String> getOutlierTags(final DataPoint dp, final Severity outlierSeverity, final String type) {
-        HashMap<String, String> ret = new HashMap<>(dp.getMetadata());
+    public static Map<String, String> getTags(final DataPoint dp, final String type, List<String> tags) {
+        HashMap<String, String> ret = null;
+        if(tags == null || tags.isEmpty()) {
+            ret = new HashMap<>(dp.getMetadata());
+        }
+        else {
+            for(String tag : tags) {
+                ret = new HashMap<>();
+                String val = dp.getMetadata().get(tag);
+                if(val != null) {
+                    ret.put(tag, val);
+                }
+            }
+        }
         ret.put(TYPE_KEY, type);
         return ret;
     }
