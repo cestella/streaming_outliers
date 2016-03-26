@@ -10,7 +10,7 @@ import java.util.*;
 
 public enum OutlierHelper {
     INSTANCE;
-    public String toJson(DataPoint dp) {
+    public Map<String, Object> toJson(DataPoint dp) {
         Map<String, Object> json = new HashMap<>();
         json.put("timestamp", dp.getTimestamp());
         json.put("value", dp.getValue());
@@ -25,10 +25,6 @@ public enum OutlierHelper {
                 json.put(kv.getKey(), kv.getValue());
             }
         }
-        try {
-            return JSONUtil.INSTANCE.toJSON(json);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("Unable to convert to json: " + Joiner.on(',').join(json.entrySet()), e);
-        }
+        return json;
     }
 }
