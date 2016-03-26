@@ -240,7 +240,7 @@ public class Topology {
             Map conf = new HashMap();
             conf.put("es.input.json", "true");
             if(esNode != null) {
-                if(esNode.contains(":")) {
+                /*if(esNode.contains(":")) {
                     Iterable<String> tokens = Splitter.on(':').split(esNode);
                     String host = Iterables.getFirst(tokens, ConfigurationOptions.ES_NODES_DEFAULT);
                     String port = Iterables.getLast(tokens, ConfigurationOptions.ES_PORT_DEFAULT);
@@ -249,7 +249,8 @@ public class Topology {
                 }
                 else {
                     conf.put(ConfigurationOptions.ES_NODES, esNode);
-                }
+                }*/
+                conf.put(ConfigurationOptions.ES_NODES, esNode);
             }
             conf.put(ConfigurationOptions.ES_INDEX_AUTO_CREATE, true);
             builder.setBolt("es_bolt", new EsBolt(indexName, conf), numIndexers)
@@ -308,7 +309,7 @@ public class Topology {
                                                    5
                                                  , OutlierOptions.INDEX.has(cli)?
                                                    OutlierOptions.INDEX.get(cli):
-                                                   "outlier/{source}"
+                                                   "{source}/outlier"
                                                  , startAtBeginning
                                                  );
         StormSubmitter.submitTopologyWithProgressBar( topologyName, clusterConf, topology.createTopology());
