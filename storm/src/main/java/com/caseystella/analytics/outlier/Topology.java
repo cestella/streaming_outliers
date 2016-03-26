@@ -238,7 +238,7 @@ public class Topology {
         builder.setBolt(boltId, bolt, numWorkers).fieldsGrouping(spoutId, new Fields(Constants.GROUP_ID));
         {
             Map conf = new HashMap();
-            conf.put("es.input.json", "true");
+            conf.put(ConfigurationOptions.ES_INPUT_JSON, "yes");
             if(esNode != null) {
                 /*if(esNode.contains(":")) {
                     Iterable<String> tokens = Splitter.on(':').split(esNode);

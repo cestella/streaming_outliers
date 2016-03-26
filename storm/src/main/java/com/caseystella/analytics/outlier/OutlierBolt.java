@@ -108,7 +108,9 @@ public class OutlierBolt implements IRichBolt {
                         , TimeseriesDatabaseHandlers.EMPTY_CALLBACK
                 );
                 try {
-                    _collector.emit(STREAM_ID, ImmutableList.<Object>of(OutlierHelper.INSTANCE.toJson(dp)));
+                    String json = OutlierHelper.INSTANCE.toJson(dp);
+                    LOG.info(json);
+                    _collector.emit(STREAM_ID, ImmutableList.<Object>of(json));
                 } catch (RuntimeException e) {
                     LOG.error(e.getMessage(), e);
                 }
