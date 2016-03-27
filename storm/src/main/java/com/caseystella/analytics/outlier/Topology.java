@@ -280,9 +280,9 @@ public class Topology {
             numSpouts = Integer.parseInt(OutlierOptions.NUM_SPOUTS.get(cli));
         }
         Map clusterConf = Utils.readStormConfig();
-        clusterConf.put("topology.max.spout.pending", 200);
+        clusterConf.put("topology.max.spout.pending", 100);
         Config config = new Config();
-        config.put("topology.max.spout.pending", 200);
+        config.put("topology.max.spout.pending", 100);
         config.setNumWorkers(numWorkers);
         config.registerMetricsConsumer(LoggingMetricsConsumer.class);
 
