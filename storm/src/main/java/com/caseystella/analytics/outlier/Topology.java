@@ -280,11 +280,12 @@ public class Topology {
             numSpouts = Integer.parseInt(OutlierOptions.NUM_SPOUTS.get(cli));
         }
         Map clusterConf = Utils.readStormConfig();
+        clusterConf.put("topology.max.spout.pending", 200);
         Config config = new Config();
+        config.put("topology.max.spout.pending", 200);
         config.setNumWorkers(numWorkers);
         config.registerMetricsConsumer(LoggingMetricsConsumer.class);
 
-        Configuration hadoopConfig = HBaseConfiguration.create();
         String topicName = OutlierOptions.TOPIC.get(cli);
         String topologyName = "streaming_outliers_" + topicName;
         String zkConnectString = OutlierOptions.ZK_QUORUM.get(cli);
