@@ -238,20 +238,10 @@ public class Topology {
         builder.setBolt(boltId, bolt, numWorkers).fieldsGrouping(spoutId, new Fields(Constants.GROUP_ID));
         {
             Map conf = new HashMap();
-            //conf.put(ConfigurationOptions.ES_INPUT_JSON, "yes");
             if(esNode != null) {
-                /*if(esNode.contains(":")) {
-                    Iterable<String> tokens = Splitter.on(':').split(esNode);
-                    String host = Iterables.getFirst(tokens, ConfigurationOptions.ES_NODES_DEFAULT);
-                    String port = Iterables.getLast(tokens, ConfigurationOptions.ES_PORT_DEFAULT);
-                    conf.put(ConfigurationOptions.ES_NODES, host);
-                    conf.put(ConfigurationOptions.ES_PORT, port);
-                }
-                else {
-                    conf.put(ConfigurationOptions.ES_NODES, esNode);
-                }*/
                 conf.put(ConfigurationOptions.ES_NODES, esNode);
             }
+            conf.put(ConfigurationOptions.ES_BATCH_SIZE_ENTRIES, "1");
             conf.put(ConfigurationOptions.ES_INDEX_AUTO_CREATE, true);
             builder.setBolt("es_bolt", new EsBolt(indexName, conf), numIndexers)
                    .shuffleGrouping(boltId, OutlierBolt.STREAM_ID);
