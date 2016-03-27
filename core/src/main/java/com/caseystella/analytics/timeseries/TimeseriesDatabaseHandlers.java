@@ -38,8 +38,8 @@ public enum TimeseriesDatabaseHandlers {
             //ret = new HashMap<>(dp.getMetadata());
         }
         else {
+            ret = new HashMap<>();
             for(String tag : tags) {
-                ret = new HashMap<>();
                 String val = dp.getMetadata().get(tag);
                 if(val != null) {
                     ret.put(tag, val);
