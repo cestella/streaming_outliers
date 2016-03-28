@@ -18,3 +18,4 @@ dependency-reduced-pom.xml
 *.aux
 *.snm
 *.toc
+.DS_Store
