@@ -5,6 +5,7 @@ import com.caseystella.analytics.distribution.TimeRange;
 import com.caseystella.analytics.timeseries.TimeseriesDatabaseHandler;
 import com.google.common.base.Function;
 import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.Sets;
 
 import java.util.*;
 
@@ -31,7 +32,7 @@ public class InMemoryTimeSeriesDB implements TimeseriesDatabaseHandler {
         synchronized(_sync) {
             NavigableSet<DataPoint> tsMap = backingStore.get(metric);
             if (tsMap == null) {
-                tsMap = Collections.synchronizedNavigableSet(new TreeSet<>(COMPARATOR));
+                tsMap = Sets.synchronizedNavigableSet(new TreeSet<>(COMPARATOR));
                 backingStore.put(metric, tsMap);
             }
             Map<String, String> metadata = pt.getMetadata();
