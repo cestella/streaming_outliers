@@ -31,11 +31,20 @@ public class DryRun {
             this.outputFilter.put(kv.getKey().toString(), kv.getValue().toString());
         }
     }
+    Set<String> matches = new HashSet<String>();
     public boolean filterMatch(DataPoint dp) {
         boolean ret = true;
         for(Map.Entry<String, String> kv : outputFilter.entrySet()) {
             String target = dp.getMetadata().get(kv.getKey());
-            ret &= target != null && target.toLowerCase().startsWith(kv.getValue().toLowerCase());
+            boolean isMatch = target != null && target.toLowerCase().startsWith(kv.getValue().toLowerCase());
+            if(isMatch) {
+                if(!matches.contains(kv.getValue())) {
+                    System.out.println("Matching " + target.toLowerCase());
+                    matches.add(kv.getValue());
+                }
+
+            }
+            ret &= isMatch;
         }
         return ret;
     }
@@ -52,6 +61,12 @@ public class DryRun {
         detector.configure(streamingOutlierConfig);
         DataPointExtractor extractor = new DataPointExtractor().withConfig(extractorConfig);
         BufferedReader br = new BufferedReader(new FileReader(inputFile));
+        if(!outputFilter.isEmpty()) {
+            System.out.println("Filtering data...");
+        }
+        else {
+            System.out.println("Not Filtering data...");
+        }
         int lineNo = 1;
         for(String line = null;(line = br.readLine()) != null;lineNo++) {
             if(lineNo % 100 == 0) {

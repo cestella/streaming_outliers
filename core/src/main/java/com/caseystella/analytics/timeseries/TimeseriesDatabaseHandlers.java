@@ -7,6 +7,7 @@ import com.caseystella.analytics.timeseries.tsdb.TSDBHandler;
 import com.google.common.base.Function;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,17 +34,15 @@ public enum TimeseriesDatabaseHandlers {
 
     public static Map<String, String> getTags(final DataPoint dp, final String type, List<String> tags) {
         HashMap<String, String> ret = null;
-        if(tags == null || tags.isEmpty()) {
-            throw new RuntimeException("You must specify tags!");
+        if(tags == null ) {
+            tags = new ArrayList<>();
             //ret = new HashMap<>(dp.getMetadata());
         }
-        else {
-            ret = new HashMap<>();
-            for(String tag : tags) {
-                String val = dp.getMetadata().get(tag);
-                if(val != null) {
-                    ret.put(tag, val);
-                }
+        ret = new HashMap<>();
+        for(String tag : tags) {
+            String val = dp.getMetadata().get(tag);
+            if(val != null) {
+                ret.put(tag, val);
             }
         }
         ret.put(TYPE_KEY, type);

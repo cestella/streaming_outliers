@@ -26,6 +26,7 @@ public class SketchyMovingMAD implements OutlierAlgorithm{
     private int reservoirSize;
     private double decay = 0.1;
     private LinkedList<Severity> lastOutlier = new LinkedList<>();
+    private boolean smoothOutliers = false;
     public SketchyMovingMAD() {
 
     }
@@ -155,15 +156,16 @@ public class SketchyMovingMAD implements OutlierAlgorithm{
         return ret;
     }
     private void adjustSeverity(Outlier s) {
-        if(s.getSeverity() == Severity.SEVERE_OUTLIER
+        if(smoothOutliers
+        && s.getSeverity() == Severity.SEVERE_OUTLIER
         && lastOutlier != null
         && (lastOutlier.contains(Severity.SEVERE_OUTLIER))
           )
         {
-            //s.setSeverity(Severity.NORMAL);
+            s.setSeverity(Severity.NORMAL);
         }
         lastOutlier.addFirst(s.getSeverity());
-        if(lastOutlier.size() > 3) {
+        if(lastOutlier.size() > 2) {
             lastOutlier.removeLast();
         }
     }
@@ -204,6 +206,7 @@ public class SketchyMovingMAD implements OutlierAlgorithm{
     public static final String MIN_ZSCORE_PERCENTILE = "minZscorePercentile";
     public static final String RESERVOIR_SIZE = "reservoirSize";
     public static final String DECAY = "decay";
+    public static final String SMOOTH = "smooth";
 
 
 
@@ -220,6 +223,9 @@ public class SketchyMovingMAD implements OutlierAlgorithm{
         }
         else {
             reservoirSize = (int)minAmountToPredict;
+        }
+        if(config.getConfig().containsKey(SMOOTH)) {
+            smoothOutliers = true;
         }
         if(config.getConfig().containsKey(DECAY)) {
             Object o = config.getConfig().get(DECAY);
