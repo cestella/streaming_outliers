@@ -19,3 +19,5 @@ dependency-reduced-pom.xml
 *.snm
 *.toc
 .DS_Store
+*.nav
+*.out

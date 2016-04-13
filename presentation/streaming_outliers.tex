@@ -1,4 +1,4 @@
-\documentclass{beamer}
+\documentclass[aspectratio=169]{beamer}
 \usepackage{lmodern}
 \usepackage{beamerthemesplit}
 \usepackage{multirow}
@@ -118,15 +118,19 @@ In order to function at scale, a two-phase approach is taken
 data stream within a distributed computational framework (i.e. Storm, Spark, Flink, NiFi) to detect outliers.}
 \end{frame}
 
-\section{Example: Streaming Financial Audit}
-\frame{\frametitle{Example: Streaming Financial Audit}
-Sometimes, doctors and hospitals have financial relationships with health care manufacturing companies. 
-These relationships can include money for research activities, gifts, speaking fees, meals, or travel. 
-The Social Security Act requires CMS to collect information from applicable manufacturers and group 
-purchasing organizations (GPOs) in order to report information about their financial relationships with physicians and hospitals.
-\vfill
-Let's treat each type (e.g. gifts, travel expenses) and physician specialty as a timeseries and look for anomalous payments.
-}
+\begin{frame}
+\frametitle{Sketchy Outlier Estimator: Median Absolute Deviation}
+\begin{itemize}
+\item Median absolute deviation (or MAD) is a robust statistic\pause
+  \begin{itemize}
+  \item Robust statistics are statistics with good performance for data drawn from a wide range of non-normally distributed probability distributions
+  \item Unlike the standard mean/standard deviation combo, MAD is not sensitive to the presence of outliers.\pause
+  \end{itemize}
+\item The median absolute deviation is defined for a series of univariate samples $X$ with $\tilde{x}=$median($X$), MAD($X$)=median(\{$\forall x_i \in X \lvert |x_i - \tilde{x}|$\}).\pause
+\item A point is considered an outlier if its distance from the current window median, scaled by the MAD for the previous window, is above a threshold.\pause
+\end{itemize}
+{\bf tl;dr: A formal way to encode our intuition: If a point is far away from the ``central'' point of our window, then it's likely an outlier. }
+\end{frame}
 
 \begin{frame}
 \frametitle{Architecture}
@@ -134,6 +138,19 @@ Let's treat each type (e.g. gifts, travel expenses) and physician specialty as a
   \makebox[\textwidth]{\includegraphics[width=\paperwidth]{images/streaming_outlier.pdf}}
 \end{center}
 \end{frame}
+
+
+\section{Demos}
+\begingroup
+\Huge
+\begin{frame}
+\frametitle{Demos}
+\begin{center}
+Demos
+\end{center}
+\end{frame}
+\endgroup
+
 
 \section{Questions}
 
