@@ -132,13 +132,30 @@ data stream within a distributed computational framework (i.e. Storm, Spark, Fli
 {\bf tl;dr: A formal way to encode our intuition: If a point is far away from the ``central'' point of our window, then it's likely an outlier. }
 \end{frame}
 
+%begin{frame}
+%\frametitle{Architecture}
+%\begin{center}
+%  \makebox[\textwidth]{\includegraphics[scale=0.5]{images/streaming_outlier.pdf}}
+%\end{center}
+%\end{frame}
+
 \begin{frame}
 \frametitle{Architecture}
 \begin{center}
-  \makebox[\textwidth]{\includegraphics[scale=0.5]{images/streaming_outlier.pdf}}
+  \makebox[\textwidth]{\includegraphics[scale=0.4]{images/streaming_outlier_spark.pdf}}
 \end{center}
 \end{frame}
 
+\begin{frame}
+\frametitle{Architecture}
+This kind of architecture has a few characteristics that are interesting
+  \begin{itemize}
+  \item Aimed primarily at many different low to medium velocity time series data\pause
+  \item Aimed at many different one-dimensional data streams instead of outliers in multidimensional data streams.\pause
+  \item Because probabalistic sketches are extremely compact, you can look much farther back for your context than a naive windowing solution\pause
+  \item Send outliers (lower velocity and number) and send raw time series to a TSDB capable of handling scale.  Investigate the data via a dashboard that can marry the two into a single pane of glass.
+  \end{itemize}
+\end{frame}
 
 \section{Demos}
 \begingroup
